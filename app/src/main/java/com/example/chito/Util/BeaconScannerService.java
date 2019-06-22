@@ -13,7 +13,6 @@ import android.support.annotation.RequiresApi;
 import android.util.Log;
 import android.view.WindowManager;
 
-import com.example.chito.MainActivity;
 import com.example.chito.model.BleManagement;
 
 public class BeaconScannerService extends Service {
