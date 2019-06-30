@@ -1,19 +1,26 @@
 package com.example.chito.activities;
 
 import android.Manifest;
+import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.DownloadManager;
 import android.bluetooth.BluetoothAdapter;
 import android.content.ComponentName;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
+import android.net.Uri;
+import android.os.Environment;
+import android.os.Handler;
 import android.os.IBinder;
+import android.os.Message;
 import android.provider.Settings;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
@@ -25,6 +32,7 @@ import com.example.chito.model.MainModel;
 import com.example.chito.presenter.MainPresenter;
 import com.example.chito.view.MainView;
 
+import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -37,6 +45,7 @@ public class MainActivity extends AppCompatActivity implements MainView {
     private Button btn_scanBeacon;
     private Button btn_startService;
     private Button btn_web;
+    private Button btn_download;
 
     private BluetoothAdapter mBtAdapter;
     private BluetoothAdapter.LeScanCallback mLeScanCallback;
@@ -111,7 +120,40 @@ public class MainActivity extends AppCompatActivity implements MainView {
                 startActivity(goweb);
             }
         });
+
+        btn_download = findViewById(R.id.btn_download);
+        btn_download.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                File direct = new File(Environment.getExternalStorageDirectory()
+                        + "/story_assets");
+                if (!direct.exists()) {
+                    direct.mkdirs();
+                }
+                File direct_id = new File(Environment.getExternalStorageDirectory()
+                        + "/story_assets/s1");
+                if (!direct.exists()) {
+                    direct.mkdirs();
+                }
+
+                new Thread(new Runnable(){
+                    @Override
+                    public void run() {
+                        if(mainPresenter.checkStoredPermission(MainActivity.this)) {
+                            Uri uri = Uri.parse("http://chito-test.nya.tw:3000/api/v1/assets/1");
+                            DownloadManager.Request request = new DownloadManager.Request(uri);
+                            request.setDestinationInExternalPublicDir(  "/story_assets/s1" ,  "1.html");
+//                            request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED); // to notify when download is complete
+                            request.allowScanningByMediaScanner();// if you want to be available from media players
+                            DownloadManager manager = (DownloadManager) getSystemService(DOWNLOAD_SERVICE);
+                            manager.enqueue(request);
+                        }
+                    }
+                }).start();
+            }
+        });
     }
+
 
     @Override
     public void setContentView() {

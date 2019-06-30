@@ -1,5 +1,7 @@
 package com.example.chito.presenter;
 
+import android.view.Window;
+
 import com.example.chito.model.MainModel;
 import com.example.chito.view.HtmlView;
 

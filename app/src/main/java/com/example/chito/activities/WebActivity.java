@@ -2,11 +2,16 @@ package com.example.chito.activities;
 
 
 import android.annotation.SuppressLint;
+import android.os.Build;
 import android.os.Bundle;
 
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
+import android.view.Window;
+import android.webkit.ValueCallback;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
+import android.webkit.WebViewClient;
 import android.widget.Toast;
 
 import com.example.chito.R;
@@ -27,9 +32,9 @@ public class WebActivity extends AppCompatActivity implements HtmlView {
         init();
     }
 
-    public void init(){
+    public void init() {
         //主要調配器宣告
-        webPresenter = new WebPresenter(this,new MainModel());
+        webPresenter = new WebPresenter(this, new MainModel());
         webPresenter.onCreate();
         webView = findViewById(R.id.MainWebView);
         WebSettings webSettings = webView.getSettings();
@@ -44,12 +49,26 @@ public class WebActivity extends AppCompatActivity implements HtmlView {
         // 加载JS代码
         // 格式规定为:file:///android_asset/文件名.html
         webView.loadUrl("file:///android_asset/www/browse.html");
-
+        webView.setWebViewClient(new WebViewClient()
+        {
+            @Override
+            public void onPageFinished(WebView view, String url)
+            {
+                super.onPageFinished(view, url);
+                webView.loadUrl("javascript:callJS(\"測試測試\")");
+            }
+        });
     }
 
     @Override
     public void setContentView() {
+        //Remove title bar
         setContentView(R.layout.web_main);
+        try
+        {
+            this.getSupportActionBar().hide();
+        }
+        catch (NullPointerException e){}
     }
 
     @Override

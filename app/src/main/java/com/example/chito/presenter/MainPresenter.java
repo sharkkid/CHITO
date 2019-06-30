@@ -1,9 +1,13 @@
 package com.example.chito.presenter;
 
+import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.content.Intent;
 import android.os.Build;
+import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.provider.Settings;
 import android.support.annotation.RequiresApi;
 import android.util.Log;
@@ -12,6 +16,15 @@ import com.example.chito.Util.Beacon;
 import com.example.chito.Util.BeaconFormateNotFoundException;
 import com.example.chito.model.MainModel;
 import com.example.chito.view.MainView;
+
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.net.URL;
+import java.net.URLConnection;
 
 
 public class MainPresenter {
@@ -95,6 +108,10 @@ public class MainPresenter {
 
     public void checkPermission(){
 
+    }
+
+    public boolean checkStoredPermission(Activity activity){
+        return mainModel.haveStoragePermission(activity);
     }
 
 }
