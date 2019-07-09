@@ -27,6 +27,8 @@ import android.widget.Toast;
 
 import com.example.chito.R;
 import com.example.chito.Util.BeaconScannerService;
+import com.example.chito.Util.RetrofitManager;
+import com.example.chito.Util.playbooks_pojo;
 import com.example.chito.model.BleManagement;
 import com.example.chito.model.MainModel;
 import com.example.chito.presenter.MainPresenter;
@@ -35,6 +37,10 @@ import com.example.chito.view.MainView;
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 import static android.provider.Settings.ACTION_MANAGE_OVERLAY_PERMISSION;
 
@@ -50,8 +56,10 @@ public class MainActivity extends AppCompatActivity implements MainView {
     private BluetoothAdapter mBtAdapter;
     private BluetoothAdapter.LeScanCallback mLeScanCallback;
     private BleManagement bleManagement;
-
     private BeaconScannerService beaconScannerService = null;
+
+    // 1. 宣告MyAPIService
+    RetrofitManager.MyAPIService myAPIService;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -150,6 +158,28 @@ public class MainActivity extends AppCompatActivity implements MainView {
                         }
                     }
                 }).start();
+
+                // 2. 透過RetrofitManager取得連線基底
+                myAPIService = RetrofitManager.getInstance().getAPI();
+
+                // 3. 建立連線的Call，此處設置call為myAPIService中的getAlbums()連線
+                Call<playbooks_pojo> call = myAPIService.getPlaybook();
+
+                // 4. 執行call
+                call.enqueue(new Callback<playbooks_pojo>() {
+                    @Override
+                    public void onResponse(Call<playbooks_pojo> call, Response<playbooks_pojo> response) {
+                        // 連線成功
+                        // 回傳的資料已轉成物件，可直接用get方法取得特定欄位
+//                        String title = response.body().getAssets().get(0).getId();
+                        Log.d("getId", "成功");
+                    }
+
+                    @Override
+                    public void onFailure(Call<playbooks_pojo> call, Throwable t) {
+                        Log.d("getId", "失敗"+call.toString());
+                    }
+                });
             }
         });
     }
