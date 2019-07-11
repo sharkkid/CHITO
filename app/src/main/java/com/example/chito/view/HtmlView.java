@@ -10,4 +10,7 @@ public interface HtmlView {
 
     void setContentView();
     void showToast(String text);
+
+    void reques_permission();
+
 }

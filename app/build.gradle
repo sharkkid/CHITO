@@ -4,6 +4,7 @@ android {
     compileSdkVersion 28
     defaultConfig {
         applicationId "com.example.chito"
+        useLibrary 'org.apache.http.legacy'
         minSdkVersion 23
         targetSdkVersion 28
         versionCode 2

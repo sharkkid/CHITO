@@ -7,8 +7,11 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Build;
+import android.os.Environment;
 import android.support.v4.app.ActivityCompat;
 import android.util.Log;
+
+import java.io.File;
 
 public class MainModel {
 
@@ -59,5 +62,17 @@ public class MainModel {
             Log.e("Permission error","You already have the permission");
             return true;
         }
+    }
+
+    public boolean isFileExists(String dirname,String filename){
+        File folder1 = new File(Environment.getExternalStorageDirectory().getPath()+dirname+"/"+filename);
+        Log.d("isFileExists",Environment.getExternalStorageDirectory().getPath()+dirname+"/"+filename);
+        return folder1.exists();
+    }
+
+    public boolean deleteFile(String dirname,String filename){
+        File folder1 = new File(Environment.getExternalStorageDirectory().getPath()+dirname+"/"+filename);
+        Log.d("deleteFile",Environment.getExternalStorageDirectory().getPath()+dirname+"/"+filename);
+        return folder1.delete();
     }
 }
