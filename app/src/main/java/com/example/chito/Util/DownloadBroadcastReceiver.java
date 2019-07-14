@@ -23,9 +23,13 @@ public class DownloadBroadcastReceiver extends BroadcastReceiver {
             }
             else if(WebInterface.playbook_isDonwloaded){
                 Log.d(TAG,WebInterface.playbook_isDonwloaded+"");
-                WebInterface.progressDialog.dismiss();
+                WebInterface.playbook_isDonwloaded_n++;
+                if(WebInterface.playbook_isDonwloaded_n == WebInterface.playbook_isDonwloaded_max) {
+                    WebInterface.progressDialog.dismiss();
 //                WebActivity.loadBrowseUrl();
-                WebInterface.playbook_isDonwloaded = false;
+                    WebInterface.playbook_isDonwloaded = false;
+                }
+                Log.d(TAG,WebInterface.playbook_isDonwloaded_n+"");
             }
         }
     }

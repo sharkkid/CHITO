@@ -1,10 +1,19 @@
 package com.example.chito.presenter;
 
 import android.app.Activity;
+import android.content.Context;
+import android.media.MediaPlayer;
+import android.net.ConnectivityManager;
 import android.view.Window;
 
 import com.example.chito.model.MainModel;
 import com.example.chito.view.HtmlView;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+import java.io.IOException;
+import java.util.ArrayList;
 
 
 public class WebPresenter {
@@ -35,7 +44,39 @@ public class WebPresenter {
         return mainModel.isFileExists(dirname,filename);
     }
 
-    public boolean deleteFile(String dirname,String filename){
-        return mainModel.deleteFile(dirname,filename);
+    public void deleteFile(String dirname,String filename){
+        mainModel.deleteFile(dirname,filename);
+    }
+
+    public boolean checkNetworkState(Context context, ConnectivityManager manager){
+        return mainModel.checkNetworkState(context, manager);
+    }
+
+    public void showToast(String text){
+        htmlView.showToast(text);
+    }
+
+    public void file_downloader(String thumbnail_url,String assets_id){
+        htmlView.file_downloader(thumbnail_url,assets_id);
+    }
+
+    public String getFileText(String path, String filename) throws IOException{
+        return mainModel.getFileText(path, filename);
+    }
+
+    //json格式化
+    public String toPrettyFormat(String jsonString)
+    {
+        return mainModel.toPrettyFormat(jsonString);
+    }
+
+    //取得Scene ID
+    public JSONObject getJSONObjectById(String id, ArrayList<JSONObject> jsonArray){
+        return mainModel.getJSONObjectById(id, jsonArray);
+    }
+
+    //播放聲音檔
+    public MediaPlayer playSound(final Context context, final String fileName, boolean loop) {
+        return mainModel.playSound(context, fileName, loop);
     }
 }

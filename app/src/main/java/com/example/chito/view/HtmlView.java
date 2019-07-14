@@ -5,6 +5,8 @@ import android.bluetooth.BluetoothAdapter;
 
 import com.example.chito.Util.WebInterface;
 
+import org.json.JSONArray;
+
 
 public interface HtmlView {
 
@@ -12,5 +14,5 @@ public interface HtmlView {
     void showToast(String text);
 
     void reques_permission();
-
+    void file_downloader(String thumbnail_url,String assets_id);
 }

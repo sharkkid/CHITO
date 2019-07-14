@@ -9,12 +9,12 @@ import android.os.AsyncTask;
 import android.os.Environment;
 import android.util.Log;
 import android.webkit.JavascriptInterface;
+import android.webkit.WebView;
+import android.webkit.WebViewClient;
 import android.widget.Toast;
 
-import com.example.chito.activities.WebActivity;
+import com.example.chito.activities.PlayBookActivity;
 import com.example.chito.presenter.WebPresenter;
-import com.google.gson.Gson;
-
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
@@ -33,9 +33,14 @@ import java.io.InputStreamReader;
 import static android.content.Context.DOWNLOAD_SERVICE;
 
 public class WebInterface extends Object{
-    public Context context;
-    public WebPresenter webPresenter;
+    public static Context context;
+    public static WebPresenter webPresenter;
+
     public static boolean playbook_isDonwloaded = false;
+    public static int playbook_isDonwloaded_n = 0;
+    public static int playbook_isDonwloaded_max = 0;
+
+
     public static ProgressDialog progressDialog;
 
     public WebInterface(Context context, WebPresenter webPresenter){
@@ -45,15 +50,24 @@ public class WebInterface extends Object{
     @JavascriptInterface
     public void ShowToast(String str){
         Toast.makeText(context,str,Toast.LENGTH_SHORT).show();
-        progressDialog = ProgressDialog.show(context,
-                "劇本下載中", "請等待...",true);
     }
+    @JavascriptInterface
     public void Playbook_downloader(String book_id){
         progressDialog = ProgressDialog.show(context,
-                "劇本下載中", "請等待...",true);
-        new PlayBook_Downloader().execute("http://chito-test.nya.tw:3000/api/v1/playbooks/"+book_id);
-
+                "劇本下載中", "請等待...", true);
+        new PlayBook_Downloader().execute("http://chito-test.nya.tw:3000/api/v1/playbooks/" + book_id,book_id);
     }
+    @JavascriptInterface
+    public static void loadHtmlUrl(final String book_id, final String html_id){
+        PlayBookActivity.webView.post(new Runnable() {
+            @Override
+            public void run() {
+                PlayBookActivity.webView.loadUrl("file://"+Environment.getExternalStorageDirectory()+"/story_assets/s"+book_id+"/"+html_id+".html");
+                webPresenter.playSound(context,"",true);
+            }
+        });
+    }
+
     public class PlayBook_Downloader extends AsyncTask<String, Void, String> {
         @Override
         protected String doInBackground(String... urls) {
@@ -77,7 +91,7 @@ public class WebInterface extends Object{
             try {
                 final JSONObject json = new JSONObject(result);
                 final String story_id = json.getString("backgroundSceneId");
-                String str = new Gson().toJson(json);
+                String str = webPresenter.toPrettyFormat(result);
                 FileOutputStream fos = null;
                 try {
                     fos = new FileOutputStream(new File(Environment.getExternalStorageDirectory().getPath()+"/story_assets/s"+story_id+"/"+story_id+".json"));
@@ -96,6 +110,7 @@ public class WebInterface extends Object{
                     }
                 }
                 final JSONArray articles = json.getJSONArray("assets");
+                playbook_isDonwloaded_max = json.getJSONArray("assets").length()-1;
                 for(int i = 0;i < json.getJSONArray("assets").length() ; i++) {
                     final String assets_id = articles.getJSONObject(i).getString("id");
                     final int finalI = i;
@@ -103,15 +118,18 @@ public class WebInterface extends Object{
                         @Override
                         public void run() {
                             if (webPresenter.checkStoredPermission((Activity) context)) {
-                                Uri uri = Uri.parse("http://chito-test.nya.tw:3000/api/v1/assets/"+assets_id);
-                                DownloadManager.Request request = new DownloadManager.Request(uri);
                                 try {
-                                    request.setDestinationInExternalPublicDir("/story_assets/s"+story_id, fileNameConverter(articles.getJSONObject(finalI).getString("contentType"),assets_id));
+                                    if (webPresenter.isFileExists("/story_assets/s" + story_id, fileNameConverter(articles.getJSONObject(finalI).getString("contentType"), assets_id))) {
+                                        //移除以前下載的檔案
+                                        webPresenter.deleteFile("/story_assets/s" + story_id, fileNameConverter(articles.getJSONObject(finalI).getString("contentType"), assets_id));
+                                        file_downloader(story_id,assets_id,articles,finalI);
+                                    }
+                                    else{
+                                        file_downloader(story_id,assets_id,articles,finalI);
+                                    }
                                 } catch (JSONException e) {
                                     e.printStackTrace();
                                 }
-                                DownloadManager manager = (DownloadManager) context.getSystemService(DOWNLOAD_SERVICE);
-                                manager.enqueue(request);
                             }
                         }
                     }).start();
@@ -168,6 +186,20 @@ public class WebInterface extends Object{
             }
             return file_name;
         }
+
+        public void file_downloader(String story_id,String assets_id,JSONArray articles,int finalI){
+            Uri uri = Uri.parse("http://chito-test.nya.tw:3000/api/v1/assets/" + assets_id);
+            DownloadManager.Request request = new DownloadManager.Request(uri);
+            try {
+                request.setDestinationInExternalPublicDir("/story_assets/s" + story_id, fileNameConverter(articles.getJSONObject(finalI).getString("contentType"), assets_id));
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+            DownloadManager manager = (DownloadManager) context.getSystemService(DOWNLOAD_SERVICE);
+            manager.enqueue(request);
+        }
+
+
     }
 }
 

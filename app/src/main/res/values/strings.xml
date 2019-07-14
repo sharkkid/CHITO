@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">CHITO</string>
+    <string name="todo">TODO</string>
+    <string name="fakecall">fakecall_img</string>
 </resources>

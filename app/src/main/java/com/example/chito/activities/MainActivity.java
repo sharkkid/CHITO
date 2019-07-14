@@ -138,7 +138,12 @@ public class MainActivity extends AppCompatActivity implements MainView {
         btn_download.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-//                new HttpAsyncTask().execute("http://chito-test.nya.tw:3000/api/v1/playbooks/","1");
+                Intent goweb = new Intent(MainActivity.this, PlayBookActivity.class);
+                goweb .putExtra("book_id","1");//傳遞劇本編號
+
+                startActivity(goweb);
+//                Intent goweb = new Intent(MainActivity.this, FakeCallActivity.class);
+//                startActivity(goweb);
             }
         });
     }
