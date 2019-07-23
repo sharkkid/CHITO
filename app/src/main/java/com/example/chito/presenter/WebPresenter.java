@@ -14,6 +14,7 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Map;
 
 
 public class WebPresenter {
@@ -78,5 +79,10 @@ public class WebPresenter {
     //播放聲音檔
     public MediaPlayer playSound(final Context context, final String fileName, boolean loop) {
         return mainModel.playSound(context, fileName, loop);
+    }
+
+    //JSON處理
+    public Map<String,String> InitialParser(JSONObject jsonObject) {
+        return mainModel.InitialParser(jsonObject);
     }
 }

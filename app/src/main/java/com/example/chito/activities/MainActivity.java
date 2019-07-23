@@ -94,7 +94,7 @@ public class MainActivity extends AppCompatActivity implements MainView {
         mBtAdapter = BluetoothAdapter.getDefaultAdapter();
         //權限
         mainPresenter.reques_permission();
-
+        mainPresenter.checkStoredPermission(MainActivity.this);
         //元件設定
         btn_scanBeacon = findViewById(R.id.btn_scanBeacon);
         btn_scanBeacon.setOnClickListener(new View.OnClickListener() {

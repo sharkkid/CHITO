@@ -17,6 +17,7 @@ import android.util.Log;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
@@ -29,6 +30,8 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 public class MainModel {
 
@@ -161,4 +164,91 @@ public class MainModel {
         mp.start();
         return mp;
     }
+
+    public boolean Isempty(JSONObject jsonObject,String sort) throws JSONException {
+        boolean flag = false;
+        Log.d("initial",new JSONObject(jsonObject.getString("initial")).toString());
+        if(new JSONObject(jsonObject.getString("initial")).has(sort)){
+            flag = true;
+        }else{
+            flag = false;
+        }
+        return flag;
+    }
+
+    /*
+    * 以下為劇本處理邏輯
+    * */
+    public Map<String,String> InitialParser(JSONObject jsonObject) {
+        Map<String, String> map = new HashMap<>();
+        try {
+            // Display
+//            Log.d("jsonObject",jsonObject.toString());
+            if(Isempty(jsonObject,"display")) {
+                String type = new JSONObject(new JSONObject(jsonObject.getString("initial")).getString("display")).getString("type");
+                Log.d("type",type);
+                switch (type) {
+                    case "webview":
+                        String assetId = new JSONObject(new JSONObject(jsonObject.getString("initial")).getString("display")).getString("assetId");
+                        map.put("webview","1");
+                        map.put("type",type);
+                        map.put("assetsId",assetId);
+                        break;
+                    case "ar":
+
+                        break;
+                }
+            }
+
+            // Audio
+            if(Isempty(jsonObject,"audio")) {
+//                Log.d("audio_jsonObject", new JSONObject(new JSONObject(jsonObject.getString("initial")).getString("audio")).getJSONArray("tracks").length()+"");
+                JSONArray jsonArray_audio = new JSONObject(new JSONObject(jsonObject.getString("initial")).getString("audio")).getJSONArray("tracks");
+                for(int i=0;i<jsonArray_audio.length();i++) {
+                    String assetId = new JSONObject(new JSONObject(jsonObject.getString("initial")).getString("audio")).getJSONArray("tracks").getJSONObject(i).getString("assetId");
+                    Log.d("assetId",assetId);
+                    map.put("audio_assetId"+i, assetId);
+                    if (new JSONObject(new JSONObject(jsonObject.getString("initial")).getString("audio")).getJSONArray("tracks").getJSONObject(i).has("fadeOutSeconds")) {
+                        String fadeOutSeconds = new JSONObject(new JSONObject(jsonObject.getString("initial")).getString("audio")).getJSONArray("tracks").getJSONObject(i).getString("fadeOutSeconds");
+                        map.put("audio_fadeOutSeconds"+i, fadeOutSeconds);
+                        Log.d("audio_fadeOutSeconds"+i,"audio_fadeOutSeconds"+i);
+                    }
+                    if (new JSONObject(new JSONObject(jsonObject.getString("initial")).getString("audio")).getJSONArray("tracks").getJSONObject(i).has("volume")) {
+                        String volume_type = new JSONObject(new JSONObject(new JSONObject(jsonObject.getString("initial")).getString("audio")).getJSONArray("tracks").getJSONObject(i).getString("volume")).getString("type");
+                        String latitude =  new JSONObject(new JSONObject(new JSONObject(jsonObject.getString("initial")).getString("audio")).getJSONArray("tracks").getJSONObject(i).getString("volume")).getString("latitude");
+                        String longtitude =  new JSONObject(new JSONObject(new JSONObject(jsonObject.getString("initial")).getString("audio")).getJSONArray("tracks").getJSONObject(i).getString("volume")).getString("longtitude");
+
+                        map.put("audio_volume_type"+i, volume_type);
+                        map.put("latitude"+i, latitude);
+                        map.put("longtitude"+i, longtitude);
+
+                    }
+                }
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return map;
+    }
+
+//    public String[] TriggerParser(JSONObject jsonObject) {
+//        String[] result = new String[2];
+//        try {
+//            String webviewClick = new JSONObject(new JSONObject(jsonObject.getString("triggers")).getString("webviewClick")).getString("webviewClick");
+//            switch (type){
+//                case "webview":
+//                    String assetId = new JSONObject(new JSONObject(jsonObject.getString("initial")).getString("display")).getString("assetId");
+//                    result[0] = type;
+//                    result[1] = assetId;
+//                    break;
+//                case "ar":
+//
+//                    break;
+//            }
+//
+//        } catch (JSONException e) {
+//            e.printStackTrace();
+//        }
+//        return result;
+//    }
 }

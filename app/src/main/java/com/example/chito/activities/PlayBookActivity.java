@@ -56,6 +56,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import static android.provider.Settings.ACTION_MANAGE_OVERLAY_PERMISSION;
 
@@ -115,6 +116,8 @@ public class PlayBookActivity extends AppCompatActivity implements HtmlView {
         }
 
         try {
+            Map<String,String> map = webPresenter.InitialParser(scenes_list.get(1));
+            Log.d("test",map.get("audio_fadeOutSeconds0"));
             String first_html = new JSONObject(new JSONObject(scenes_list.get(0).getString("initial")).getString("display")).getString("assetId");
             String next_sceneId = new JSONObject(new JSONObject(new JSONObject(new JSONObject(scenes_list.get(0).getString("triggers")).getString("webviewClick")).getString("actions")).getString("gotoScene")).getString("sceneId");
             JSONObject next_scene = webPresenter.getJSONObjectById(next_sceneId,scenes_list);
