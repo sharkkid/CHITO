@@ -67,9 +67,12 @@ public class PlayBookActivity extends AppCompatActivity implements HtmlView {
 
     public String book_id = "";
 
-    public ArrayList<JSONObject> scenes_list = new ArrayList<JSONObject>();
+//    public ArrayList<JSONObject> scenes_list = new ArrayList<JSONObject>();
     public JSONObject json;
     public JSONArray scenes;
+
+    public  String result = "";
+    public  List<Map<String,String>> scenes_list;
 
     private static ProgressDialog progressDialog;
     public static boolean booklist_isDonwloaded = false;
@@ -98,16 +101,18 @@ public class PlayBookActivity extends AppCompatActivity implements HtmlView {
         Intent intent = this.getIntent();
         //取得傳遞過來的資料
         book_id = intent.getStringExtra("book_id");
-
+        //解析劇本劇情
+        scenes_list = new ArrayList<Map<String,String>>();
         try {
-            String result = webPresenter.getFileText(Environment.getExternalStorageDirectory().getPath()+"/story_assets/s1","1.json");
+            result = webPresenter.getFileText(Environment.getExternalStorageDirectory().getPath()+"/story_assets/s1","1.json");
             json = new JSONObject(result);
             scenes = json.getJSONArray("scenes");
             for(int i = 0; i < scenes.length(); i++) {
-//                Log.d(i + "", scenes.getJSONObject(i).getString("id"));
-                scenes_list.add(scenes.getJSONObject(i));
+                Map<String,String> mapping_story = webPresenter.InitialParser(scenes.getJSONObject(i));
+                scenes_list.add(mapping_story);
+                Log.d("mapping_story "+i, String.valueOf(mapping_story));
             }
-
+            Log.d("mapping_story", String.valueOf(scenes_list));
         } catch (IOException | JSONException e) {
             e.printStackTrace();
         }
@@ -116,15 +121,13 @@ public class PlayBookActivity extends AppCompatActivity implements HtmlView {
         }
 
         try {
-            Map<String,String> map = webPresenter.InitialParser(scenes_list.get(1));
-            Log.d("test",map.get("audio_fadeOutSeconds0"));
-            String first_html = new JSONObject(new JSONObject(scenes_list.get(0).getString("initial")).getString("display")).getString("assetId");
-            String next_sceneId = new JSONObject(new JSONObject(new JSONObject(new JSONObject(scenes_list.get(0).getString("triggers")).getString("webviewClick")).getString("actions")).getString("gotoScene")).getString("sceneId");
-            JSONObject next_scene = webPresenter.getJSONObjectById(next_sceneId,scenes_list);
-            String next_html =  new JSONObject(new JSONObject(next_scene.getString("initial")).getString("display")).getString("assetId");
-            Log.d("next_html",next_html);
-            loadHtmlUrl("1",first_html,next_html);
-        } catch (JSONException e) {
+            String first_html = scenes_list.get(0).get("display_assetsId");
+            String next_sceneId = "4";
+
+            Log.d("next_html",next_sceneId);
+            loadHtmlUrl("1",first_html,next_sceneId);
+
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
