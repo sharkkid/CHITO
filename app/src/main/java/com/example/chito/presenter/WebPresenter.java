@@ -82,7 +82,7 @@ public class WebPresenter {
     }
 
     //JSON處理
-    public Map<String,String> InitialParser(JSONObject jsonObject) {
-        return mainModel.InitialParser(jsonObject);
+    public Map<String,String> JsonParser(JSONObject jsonObject) {
+        return mainModel.JsonParser(jsonObject);
     }
 }

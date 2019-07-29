@@ -189,12 +189,14 @@ public class MainModel {
     /*
     * 以下為劇本處理邏輯
     * */
-    public Map<String,String> InitialParser(JSONObject jsonObject) {
+    public Map<String,String> JsonParser(JSONObject jsonObject) {
         Map<String, String> map = new HashMap<>();
 
         try {
-            Log.d("jsonObject", jsonObject.getString("initial"));
+            Log.d("json_all", String.valueOf(jsonObject));
+            Log.d("json_initial", jsonObject.getString("initial"));
 
+//            Log.d("json_trigger", new JSONObject(jsonObject.getString("triggers")).getString("type"));
             /*
             {
             "id": 2,
@@ -233,12 +235,19 @@ public class MainModel {
             */
             // notification
             if(Isempty(jsonObject,"notification")) {
-                String instanceId = new JSONObject(new JSONObject(jsonObject.getString("initial")).getString("notification")).getString("instanceId");
-                map.put("notification_instanceId",instanceId);
-                String title = new JSONObject(new JSONObject(jsonObject.getString("initial")).getString("notification")).getString("title");
-                map.put("notification_title",title);
-                String text = new JSONObject(new JSONObject(jsonObject.getString("initial")).getString("notification")).getString("text");
-                map.put("notification_text",text);
+                if (new JSONObject(new JSONObject(jsonObject.getString("initial")).getString("notification")).has("instanceId")) {
+                    String instanceId = new JSONObject(new JSONObject(jsonObject.getString("initial")).getString("notification")).getString("instanceId");
+                    map.put("notification_instanceId",instanceId);
+                }
+                if (new JSONObject(new JSONObject(jsonObject.getString("initial")).getString("notification")).has("title")) {
+                    String title = new JSONObject(new JSONObject(jsonObject.getString("initial")).getString("notification")).getString("title");
+                    map.put("notification_title",title);
+                }
+                if (new JSONObject(new JSONObject(jsonObject.getString("initial")).getString("notification")).has("text")) {
+                    String text = new JSONObject(new JSONObject(jsonObject.getString("initial")).getString("notification")).getString("text");
+                    map.put("notification_text",text);
+                }
+
             }
 
             /*
@@ -279,38 +288,83 @@ public class MainModel {
                 String method = new JSONObject(new JSONObject(jsonObject.getString("initial")).getString("audio")).getString("method");
                 map.put("audio_method", method);
                 //從這開始
-                Log.d("jsonArray_audio",jsonArray_audio.length()+"");
-                for(int i=0;i<jsonArray_audio.length();i++) {
-                    Log.d("instanceId111"+i,new JSONObject(new JSONObject(jsonObject.getString("initial")).getString("audio")).getJSONArray("tracks").getJSONObject(i).getString("instanceId"));
-                    String instanceId = new JSONObject(new JSONObject(jsonObject.getString("initial")).getString("audio")).getJSONArray("tracks").getJSONObject(i).getString("instanceId");
-                    String pause = new JSONObject(new JSONObject(jsonObject.getString("initial")).getString("audio")).getJSONArray("tracks").getJSONObject(i).getString("pause");
-                    String currentTime = new JSONObject(new JSONObject(jsonObject.getString("initial")).getString("audio")).getJSONArray("tracks").getJSONObject(i).getString("currentTime");
-                    String assetId = new JSONObject(new JSONObject(jsonObject.getString("initial")).getString("audio")).getJSONArray("tracks").getJSONObject(i).getString("assetId");
+                Log.d("jsonArray_audio", jsonArray_audio.length() + "");
+                if (new JSONObject(new JSONObject(jsonObject.getString("initial")).getString("audio")).has("tracks")) {
+                    for (int i = 0; i < jsonArray_audio.length(); i++) {
+                        Log.d("迴圈=" + i, i + "");
+                        String instanceId = "";
+                        String pause ="";
+                        String currentTime ="";
+                        String assetId ="";
+                        String fadeOutSeconds ="";
+                        String fadeInSeconds ="";
+                        String volume_type ="";
+                        String latitude ="";
+                        String longtitude ="";
+                        if (new JSONObject(new JSONObject(jsonObject.getString("initial")).getString("audio")).getJSONArray("tracks").getJSONObject(i).has("instanceId")) {
+                            instanceId = new JSONObject(new JSONObject(jsonObject.getString("initial")).getString("audio")).getJSONArray("tracks").getJSONObject(i).getString("instanceId");
+                        }
+                        if (new JSONObject(new JSONObject(jsonObject.getString("initial")).getString("audio")).getJSONArray("tracks").getJSONObject(i).has("pause")) {
+                            pause = new JSONObject(new JSONObject(jsonObject.getString("initial")).getString("audio")).getJSONArray("tracks").getJSONObject(i).getString("pause");
+                        }
+                        if (new JSONObject(new JSONObject(jsonObject.getString("initial")).getString("audio")).getJSONArray("tracks").getJSONObject(i).has("currentTime")) {
+                            currentTime = new JSONObject(new JSONObject(jsonObject.getString("initial")).getString("audio")).getJSONArray("tracks").getJSONObject(i).getString("currentTime");
+                        }
+                        if (new JSONObject(new JSONObject(jsonObject.getString("initial")).getString("audio")).getJSONArray("tracks").getJSONObject(i).has("assetId")) {
+                            assetId = new JSONObject(new JSONObject(jsonObject.getString("initial")).getString("audio")).getJSONArray("tracks").getJSONObject(i).getString("assetId");
+                        }
 
+                        if (new JSONObject(new JSONObject(jsonObject.getString("initial")).getString("audio")).getJSONArray("tracks").getJSONObject(i).has("fadeOutSeconds")) {
+                            fadeOutSeconds = new JSONObject(new JSONObject(jsonObject.getString("initial")).getString("audio")).getJSONArray("tracks").getJSONObject(i).getString("fadeOutSeconds");
+                        }
+                        if (new JSONObject(new JSONObject(jsonObject.getString("initial")).getString("audio")).getJSONArray("tracks").getJSONObject(i).has("fadeInSeconds")) {
+                            fadeInSeconds = new JSONObject(new JSONObject(jsonObject.getString("initial")).getString("audio")).getJSONArray("tracks").getJSONObject(i).getString("fadeInSeconds");
+                        }
+                        if (new JSONObject(new JSONObject(jsonObject.getString("initial")).getString("audio")).getJSONArray("tracks").getJSONObject(i).has("volume")) {
+                            volume_type = new JSONObject(new JSONObject(new JSONObject(jsonObject.getString("initial")).getString("audio")).getJSONArray("tracks").getJSONObject(i).getString("volume")).getString("type");
+                            latitude =  new JSONObject(new JSONObject(new JSONObject(jsonObject.getString("initial")).getString("audio")).getJSONArray("tracks").getJSONObject(i).getString("volume")).getString("latitude");
+                            longtitude =  new JSONObject(new JSONObject(new JSONObject(jsonObject.getString("initial")).getString("audio")).getJSONArray("tracks").getJSONObject(i).getString("volume")).getString("longtitude");
+                            JSONArray jsonArray_distanceVolumes = new JSONObject(new JSONObject(new JSONObject(jsonObject.getString("initial")).getString("audio")).getJSONArray("tracks").getJSONObject(i).getString("volume")).getJSONArray("distanceVolumes");
 
-                    String fadeOutSeconds = new JSONObject(new JSONObject(jsonObject.getString("initial")).getString("audio")).getJSONArray("tracks").getJSONObject(i).getString("fadeOutSeconds");
-                    String fadeInSeconds = new JSONObject(new JSONObject(jsonObject.getString("initial")).getString("audio")).getJSONArray("tracks").getJSONObject(i).getString("fadeInSeconds");
-                    String volume_type = new JSONObject(new JSONObject(new JSONObject(jsonObject.getString("initial")).getString("audio")).getJSONArray("tracks").getJSONObject(i).getString("volume")).getString("type");
-                    String latitude =  new JSONObject(new JSONObject(new JSONObject(jsonObject.getString("initial")).getString("audio")).getJSONArray("tracks").getJSONObject(i).getString("volume")).getString("latitude");
-                    String longtitude =  new JSONObject(new JSONObject(new JSONObject(jsonObject.getString("initial")).getString("audio")).getJSONArray("tracks").getJSONObject(i).getString("volume")).getString("longtitude");
-                    map.put("audio_instanceId"+i, instanceId);
-                    map.put("pause"+i, pause);
-                    map.put("audio_assetId"+i, assetId);
-                    map.put("currentTime"+i, currentTime);
-                    map.put("audio_fadeOutSeconds"+i, fadeOutSeconds);
-                    map.put("audio_fadeInSeconds"+i, fadeInSeconds);
+                            int distance_length = new JSONObject(new JSONObject(new JSONObject(jsonObject.getString("initial")).getString("audio")).getJSONArray("tracks").getJSONObject(i).getString("volume")).getJSONArray("distanceVolumes").length();
+                            for(int x=0;x<distance_length;x++){
+                                String unparesed_value = new JSONObject(new JSONObject(new JSONObject(jsonObject.getString("initial")).getString("audio")).getJSONArray("tracks").getJSONObject(i).getString("volume")).getJSONArray("distanceVolumes").get(i)+"";
+                                String[] distance_value = unparesed_value.substring(1,unparesed_value.length()-1).split(",");
+                                map.put("distanceVolumes_distance"+x+i, distance_value[0]);
+                                map.put("distanceVolumes_volume"+x+i, distance_value[1]);
+                            }
+                        }
+                        map.put("audio_instanceId"+i, instanceId);
+                        map.put("pause"+i, pause);
+                        map.put("audio_assetId"+i, assetId);
+                        map.put("currentTime"+i, currentTime);
+                        map.put("audio_fadeOutSeconds"+i, fadeOutSeconds);
+                        map.put("audio_fadeInSeconds"+i, fadeInSeconds);
 
-                    map.put("audio_volume_type"+i, volume_type);
-                    map.put("audio_latitude"+i, latitude);
-                    map.put("audio_longtitude"+i, longtitude);
-                    Log.d("audio_longtitude",longtitude);
-//                    JSONArray jsonArray_distanceVolumes = new JSONObject(new JSONObject(new JSONObject(jsonObject.getString("initial")).getString("audio")).getJSONArray("tracks").getJSONObject(i).getString("volume")).getJSONArray("distanceVolumes");
-                    Log.d("長度", new JSONObject(new JSONObject(new JSONObject(jsonObject.getString("initial")).getString("audio")).getJSONArray("tracks").getJSONObject(i).getString("volume")).getString("distanceVolumes"));
-//                    for (int j = 0 ; j < jsonArray_distanceVolumes.length() ; j++){
-//                        Log.d("distanceVolumes", (String) jsonArray_distanceVolumes.get(j));
-//                    }
+                        map.put("audio_volume_type"+i, volume_type);
+                        map.put("audio_latitude"+i, latitude);
+                        map.put("audio_longtitude"+i, longtitude);
+                        Log.d("audio_longtitude",longtitude);
+
+                    }
                 }
             }
+
+            //Trigger
+
+            if(new JSONObject(jsonObject.getString("triggers")).has("type")) {
+                int n = new JSONObject(jsonObject.getString("triggers")).getJSONArray("type").length();
+                for(int i=0;i<n;i++){
+                    map.put("trigger_id",new JSONObject(jsonObject.getJSONArray("triggers").get(i)).getString("type")+"");
+                }
+            }
+            if(new JSONObject(jsonObject.getString("triggers")).has("id")) {
+                map.put("trigger_id",new JSONObject(jsonObject.getString("triggers")).getString("id")+"");
+            }
+            if(new JSONObject(jsonObject.getString("triggers")).has("action")) {
+
+            }
+
         } catch (JSONException e) {
             e.printStackTrace();
         }

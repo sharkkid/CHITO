@@ -108,11 +108,11 @@ public class PlayBookActivity extends AppCompatActivity implements HtmlView {
             json = new JSONObject(result);
             scenes = json.getJSONArray("scenes");
             for(int i = 0; i < scenes.length(); i++) {
-                Map<String,String> mapping_story = webPresenter.InitialParser(scenes.getJSONObject(i));
+                Map<String,String> mapping_story = webPresenter.JsonParser(scenes.getJSONObject(i));
                 scenes_list.add(mapping_story);
                 Log.d("mapping_story "+i, String.valueOf(mapping_story));
             }
-            Log.d("mapping_story", String.valueOf(scenes_list));
+//            Log.d("mapping_story", String.valueOf(scenes_list));
         } catch (IOException | JSONException e) {
             e.printStackTrace();
         }
@@ -122,7 +122,7 @@ public class PlayBookActivity extends AppCompatActivity implements HtmlView {
 
         try {
             String first_html = scenes_list.get(0).get("display_assetsId");
-            String next_sceneId = "4";
+            String next_sceneId = "6";
 
             Log.d("next_html",next_sceneId);
             loadHtmlUrl("1",first_html,next_sceneId);
