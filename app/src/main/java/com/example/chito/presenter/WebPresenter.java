@@ -14,10 +14,12 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 
 public class WebPresenter {
+    public String FindSceneById;
     private HtmlView htmlView;
     private MainModel mainModel;
 
@@ -84,5 +86,15 @@ public class WebPresenter {
     //JSON處理
     public Map<String,String> JsonParser(JSONObject jsonObject) {
         return mainModel.JsonParser(jsonObject);
+    }
+
+    //利用劇情編號搜尋劇情腳本
+    public Map<String,String> FindSceneById(List<Map<String,String>> map, String SceneId){
+        return mainModel.FindSceneById(map,SceneId);
+    }
+
+    //判斷key value是否空值
+    public String IsMapNull(Map<String,String> story_map,String key){
+        return mainModel.IsMapNull(story_map,key);
     }
 }

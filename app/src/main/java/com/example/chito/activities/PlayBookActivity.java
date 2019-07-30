@@ -66,13 +66,19 @@ public class PlayBookActivity extends AppCompatActivity implements HtmlView {
     public  static WebView webView;
 
     public String book_id = "";
+    public int current_sceneId = 0;
+    public int next_sceneId = 0;
 
-//    public ArrayList<JSONObject> scenes_list = new ArrayList<JSONObject>();
     public JSONObject json;
     public JSONArray scenes;
 
     public  String result = "";
     public  List<Map<String,String>> scenes_list;
+
+    public boolean IsQR = false;
+    public boolean IsGPS = false;
+    public boolean IsBLE = false;
+    public boolean IsWIFI = false;
 
     private static ProgressDialog progressDialog;
     public static boolean booklist_isDonwloaded = false;
@@ -120,19 +126,19 @@ public class PlayBookActivity extends AppCompatActivity implements HtmlView {
             exception.printStackTrace();
         }
 
-        try {
-            String first_html = scenes_list.get(0).get("display_assetsId");
-            String next_sceneId = "6";
-
-            Log.d("next_html",next_sceneId);
-            loadHtmlUrl("1",first_html,next_sceneId);
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        startPlayBook(scenes_list.get(0));
+//        try {
+//            current_sceneId = Integer.parseInt(scenes_list.get(0).get("sceneId")+"");
+//            String first_html = scenes_list.get(0).get("display_assetsId");
+//
+//            String next_sceneId = scenes_list.get(0).get("trigger_action_sceneId0");
+//            loadHtmlUrl("1",first_html,next_sceneId,"0");
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
     }
 
-    public static void loadHtmlUrl(final String book_id, final String html_id, final String next_html){
+    public static void loadHtmlUrl(final String book_id, final String html_id, final String next_html, final String flag){
         webView.loadUrl("file://"+Environment.getExternalStorageDirectory()+"/story_assets/s"+book_id+"/"+html_id+".html");
         webView.setWebViewClient(new WebViewClient()
             {
@@ -140,21 +146,24 @@ public class PlayBookActivity extends AppCompatActivity implements HtmlView {
             public void onPageFinished(WebView view, String url)
             {
                 super.onPageFinished(view, url);
-//                loadHtmlUrl("1","6");
-                webView.loadUrl("javascript:function loadPage(href)\n" +
-                        "            {\n" +
-                        "                var xmlhttp = new XMLHttpRequest();\n" +
-                        "                xmlhttp.open(\"GET\", href, false);\n" +
-                        "                xmlhttp.send();\n" +
-                        "                return xmlhttp.responseText;\n" +
-                        "            }" +
-                        "var oDiv = document.getElementById(\"go-next\");\n" +
-                        "oDiv.addEventListener(\"click\", function(){\n" +
-                        "    test.loadHtmlUrl(\""+book_id+"\",\""+next_html+"\");" +
-                        "});");
+                switch (flag) {
+                    case "0":
+                    webView.loadUrl("javascript:function loadPage(href)\n" +
+                            "            {\n" +
+                            "                var xmlhttp = new XMLHttpRequest();\n" +
+                            "                xmlhttp.open(\"GET\", href, false);\n" +
+                            "                xmlhttp.send();\n" +
+                            "                return xmlhttp.responseText;\n" +
+                            "            }" +
+                            "var oDiv = document.getElementById(\"go-next\");\n" +
+                            "oDiv.addEventListener(\"click\", function(){\n" +
+                            "    test.loadHtmlUrl(\"" + book_id + "\",\"" + next_html + "\");" +
+                            "});");
+                    break;
+                }
 
 
-                webView.loadUrl("javascript:callJS(\"測試測試\")");
+//                webView.loadUrl("javascript:callJS(\"測試測試\")");
             }
 
                 @Override
@@ -175,11 +184,39 @@ public class PlayBookActivity extends AppCompatActivity implements HtmlView {
                     }
                     return super.shouldInterceptRequest(view, url);
                 }
-
         });
     }
 
-    public void startPlayBook(){
+    public void startPlayBook(Map<String,String> story_map){
+        int trigger_total = Integer.parseInt(story_map.get("triggers_total"));
+        current_sceneId = Integer.parseInt(story_map.get("sceneId"));
+        String display_type = webPresenter.IsMapNull(story_map,"display_type");
+        String current_html = "";
+        String next_html = "";
+        Map<String,String> sotry = null;
+
+        //initial
+        if(!display_type.equals("")){
+            switch (display_type){
+                case "webview":
+                    current_html = webPresenter.IsMapNull(story_map,"display_assetsId");
+                    for(int i=0;i<trigger_total;i++){
+                        switch (story_map.get("trigger_type"+i)){
+                            case "webviewClick":
+                                next_sceneId = Integer.parseInt(story_map.get("trigger_action_sceneId"+i));
+                                loadHtmlUrl("1",current_html,next_html,"0");
+                                break;
+                        }
+                    }
+                    break;
+                case "ar":
+
+                    break;
+            }
+        }
+
+
+
 
     }
 

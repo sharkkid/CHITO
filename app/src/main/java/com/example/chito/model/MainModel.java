@@ -31,6 +31,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class MainModel {
@@ -186,8 +187,28 @@ public class MainModel {
         return output;
     }
 
+    public Map<String,String> FindSceneById(List<Map<String,String>> map,String SceneId){
+        Map<String,String> temp = null;
+        for(int i=0;i<map.size();i++){
+            String id = map.get(i).get("sceneId");
+            if(id.equals(SceneId))
+                temp = map.get(i);
+        }
+
+        return temp;
+    }
+
+    public String IsMapNull(Map<String,String> story_map,String key){
+        String tmp = "";
+        if(!story_map.get(key).isEmpty()){
+            tmp = story_map.get(key);
+        }
+        return tmp;
+    }
+
     /*
-    * 以下為劇本處理邏輯
+    * 以下為劇本JSON處理
+    *
     * */
     public Map<String,String> JsonParser(JSONObject jsonObject) {
         Map<String, String> map = new HashMap<>();
@@ -195,7 +216,7 @@ public class MainModel {
         try {
             Log.d("json_all", String.valueOf(jsonObject));
             Log.d("json_initial", jsonObject.getString("initial"));
-
+            map.put("sceneId",jsonObject.getString("id"));
 //            Log.d("json_trigger", new JSONObject(jsonObject.getString("triggers")).getString("type"));
             /*
             {
@@ -287,6 +308,7 @@ public class MainModel {
                 JSONArray jsonArray_audio = new JSONObject(new JSONObject(jsonObject.getString("initial")).getString("audio")).getJSONArray("tracks");
                 String method = new JSONObject(new JSONObject(jsonObject.getString("initial")).getString("audio")).getString("method");
                 map.put("audio_method", method);
+                map.put("audio_tracks_total", jsonArray_audio.length()+"");
                 //從這開始
                 Log.d("jsonArray_audio", jsonArray_audio.length() + "");
                 if (new JSONObject(new JSONObject(jsonObject.getString("initial")).getString("audio")).has("tracks")) {
@@ -351,25 +373,148 @@ public class MainModel {
             }
 
             //Trigger
-
-            if(new JSONObject(jsonObject.getString("triggers")).has("type")) {
-                int n = new JSONObject(jsonObject.getString("triggers")).getJSONArray("type").length();
-                for(int i=0;i<n;i++){
-                    map.put("trigger_id",new JSONObject(jsonObject.getJSONArray("triggers").get(i)).getString("type")+"");
+//            Log.d("json_triggers", new JSONArray (jsonObject.getString("triggers")).getJSONObject(0).getString("type"));
+            int n = new JSONArray (jsonObject.getString("triggers")).length();
+            map.put("triggers_total", n+"");
+            Log.d("Triiger長度=",n+"");
+            for(int i=0;i<n;i++) {
+                if (new JSONArray(jsonObject.getString("triggers")).getJSONObject(i).has("type")) {
+                    map.put("trigger_type"+i, new JSONArray(jsonObject.getString("triggers")).getJSONObject(i).getString("type"));
                 }
-            }
-            if(new JSONObject(jsonObject.getString("triggers")).has("id")) {
-                map.put("trigger_id",new JSONObject(jsonObject.getString("triggers")).getString("id")+"");
-            }
-            if(new JSONObject(jsonObject.getString("triggers")).has("action")) {
+                if (new JSONArray(jsonObject.getString("triggers")).getJSONObject(i).has("id")) {
+                    map.put("trigger_id"+i, new JSONArray(jsonObject.getString("triggers")).getJSONObject(i).getString("id"));
+                }
+                if (new JSONArray(jsonObject.getString("triggers")).getJSONObject(i).has("latitude")) {
+                    map.put("trigger_latitude"+i, new JSONArray(jsonObject.getString("triggers")).getJSONObject(i).getString("latitude"));
+                }
+                if (new JSONArray(jsonObject.getString("triggers")).getJSONObject(i).has("longitude")) {
+                    map.put("trigger_longitude"+i, new JSONArray(jsonObject.getString("triggers")).getJSONObject(i).getString("longitude"));
+                }
+                if (new JSONArray(jsonObject.getString("triggers")).getJSONObject(i).has("distance")) {
+                    map.put("trigger_distance"+i, new JSONArray(jsonObject.getString("triggers")).getJSONObject(i).getString("distance"));
+                }
+                if (new JSONArray(jsonObject.getString("triggers")).getJSONObject(i).has("operator")) {
+                    map.put("trigger_operator"+i, new JSONArray(jsonObject.getString("triggers")).getJSONObject(i).getString("operator"));
+                }
+                if (new JSONArray(jsonObject.getString("triggers")).getJSONObject(i).has("uuid")) {
+                    map.put("trigger_beacon_uuid"+i, new JSONArray(jsonObject.getString("triggers")).getJSONObject(i).getString("uuid"));
+                }
+                if (new JSONArray(jsonObject.getString("triggers")).getJSONObject(i).has("major")) {
+                    map.put("trigger_beacon_major"+i, new JSONArray(jsonObject.getString("triggers")).getJSONObject(i).getString("major"));
+                }
+                if (new JSONArray(jsonObject.getString("triggers")).getJSONObject(i).has("minor")) {
+                    map.put("trigger_beacon_minor"+i, new JSONArray(jsonObject.getString("triggers")).getJSONObject(i).getString("minor"));
+                }
+                if (new JSONArray(jsonObject.getString("triggers")).getJSONObject(i).has("seconds")) {
+                    map.put("trigger_timer_seconds"+i, new JSONArray(jsonObject.getString("triggers")).getJSONObject(i).getString("seconds"));
+                }
+                if (new JSONArray(jsonObject.getString("triggers")).getJSONObject(i).has("condition")) {
+                    map.put("trigger_flag_condition"+i, new JSONArray(jsonObject.getString("triggers")).getJSONObject(i).getString("condition"));
+                }
+                if (new JSONArray(jsonObject.getString("triggers")).getJSONObject(i).has("audioId")) {
+                    map.put("trigger_audioId"+i, new JSONArray(jsonObject.getString("triggers")).getJSONObject(i).getString("audioId"));
+                }
+                if (new JSONArray(jsonObject.getString("triggers")).getJSONObject(i).has("match")) {
+                    map.put("trigger_,match"+i, new JSONArray(jsonObject.getString("triggers")).getJSONObject(i).getString("match"));
+                }
+                //20190730
+                if (new JSONArray(jsonObject.getString("triggers")).getJSONObject(i).has("actions")) {
+                    if(new JSONObject(new JSONArray(jsonObject.getString("triggers")).getJSONObject(i).getString("actions")).has("gotoScene")) {
+                        map.put("trigger_action_sceneId" + i, new JSONObject(new JSONObject(new JSONArray(jsonObject.getString("triggers")).getJSONObject(i).getString("actions")).getString("gotoScene")).getString("sceneId"));
+                        map.put("trigger_action_reuse" + i, new JSONObject(new JSONObject(new JSONArray(jsonObject.getString("triggers")).getJSONObject(i).getString("actions")).getString("gotoScene")).getString("reuse"));
+                        map.put("trigger_action_target" + i, new JSONObject(new JSONObject(new JSONArray(jsonObject.getString("triggers")).getJSONObject(i).getString("actions")).getString("gotoScene")).getString("target"));
+                    }
+                    if (new JSONObject(new JSONArray(jsonObject.getString("triggers")).getJSONObject(i).getString("actions")).has("flag")) {
+                        map.put("trigger_flag_names" + i, new JSONObject(new JSONObject(new JSONArray(jsonObject.getString("triggers")).getJSONObject(i).getString("actions")).getString("flag")).getString("names"));
+                    }
+                    if(new JSONObject(new JSONArray(jsonObject.getString("triggers")).getJSONObject(i).getString("actions")).has("audio")) {
+                        map.put("trigger_audio_method" + i, new JSONObject(new JSONObject(new JSONArray(jsonObject.getString("triggers")).getJSONObject(i).getString("actions")).getString("audio")).getString("method"));
+
+                    }
+                    if(new JSONObject(new JSONArray(jsonObject.getString("triggers")).getJSONObject(i).getString("actions")).has("changePlaybookThumbnail")) {
+                        map.put("trigger_audio_disablePlaybook_assetId" + i,new JSONObject(new JSONObject(new JSONArray(jsonObject.getString("triggers")).getJSONObject(i).getString("actions")).getString("changePlaybookThumbnail")).getString("assetId"));
+                    }
+                    if(new JSONObject(new JSONArray(jsonObject.getString("triggers")).getJSONObject(i).getString("actions")).has("disablePlaybook")) {
+                        map.put("trigger_audio_disablePlaybook_retryMessage" + i,new JSONObject(new JSONObject(new JSONArray(jsonObject.getString("triggers")).getJSONObject(i).getString("actions")).getString("disablePlaybook")).getString("message"));
+                        map.put("trigger_audio_disablePlaybook_message" + i,new JSONObject(new JSONObject(new JSONArray(jsonObject.getString("triggers")).getJSONObject(i).getString("actions")).getString("disablePlaybook")).getString("retryMessage"));
+                    }
+                    if(new JSONObject(new JSONArray(jsonObject.getString("triggers")).getJSONObject(i).getString("actions")).has("finishPlaybook")) {
+                        map.put("trigger_finishPlaybook" + i, new JSONObject(new JSONArray(jsonObject.getString("triggers")).getJSONObject(i).getString("actions")).getString("finishPlaybook"));
+                    }
+                    if (new JSONObject(new JSONArray(jsonObject.getString("triggers")).getJSONObject(i).getString("actions")).has("fakeCall")) {
+                        map.put("trigger_action_callerName" + i, new JSONObject(new JSONObject(new JSONArray(jsonObject.getString("triggers")).getJSONObject(i).getString("actions")).getString("fakeCall")).getString("callerName"));
+                        map.put("trigger_action_callerNumber" + i, new JSONObject(new JSONObject(new JSONArray(jsonObject.getString("triggers")).getJSONObject(i).getString("actions")).getString("fakeCall")).getString("callerNumber"));
+                        map.put("trigger_action_instanceId" + i, new JSONObject(new JSONObject(new JSONArray(jsonObject.getString("triggers")).getJSONObject(i).getString("actions")).getString("fakeCall")).getString("instanceId"));
+                        if (new JSONObject(new JSONObject(new JSONObject(new JSONArray(jsonObject.getString("triggers")).getJSONObject(i).getString("actions")).getString("fakeCall")).getString("ring")).has("instanceId")) {
+                            map.put("trigger_action_ring_instanceId" + i, new JSONObject(new JSONObject(new JSONObject(new JSONArray(jsonObject.getString("triggers")).getJSONObject(i).getString("actions")).getString("fakeCall")).getString("ring")).getString("instanceId"));
+                        }
+                        if (new JSONObject(new JSONObject(new JSONObject(new JSONArray(jsonObject.getString("triggers")).getJSONObject(i).getString("actions")).getString("fakeCall")).getString("ring")).has("pause")) {
+                            map.put("trigger_action_ring_pause" + i, new JSONObject(new JSONObject(new JSONObject(new JSONArray(jsonObject.getString("triggers")).getJSONObject(i).getString("actions")).getString("fakeCall")).getString("ring")).getString("pause"));
+                        }
+                        if (new JSONObject(new JSONObject(new JSONObject(new JSONArray(jsonObject.getString("triggers")).getJSONObject(i).getString("actions")).getString("fakeCall")).getString("ring")).has("currentTime")) {
+                            map.put("trigger_action_ring_currentTime" + i, new JSONObject(new JSONObject(new JSONObject(new JSONArray(jsonObject.getString("triggers")).getJSONObject(i).getString("actions")).getString("fakeCall")).getString("ring")).getString("currentTime"));
+                        }
+                        if (new JSONObject(new JSONObject(new JSONObject(new JSONArray(jsonObject.getString("triggers")).getJSONObject(i).getString("actions")).getString("fakeCall")).getString("ring")).has("fadeInSeconds")) {
+                            map.put("trigger_action_ring_fadeInSeconds" + i, new JSONObject(new JSONObject(new JSONObject(new JSONArray(jsonObject.getString("triggers")).getJSONObject(i).getString("actions")).getString("fakeCall")).getString("ring")).getString("fadeInSeconds"));
+                        }
+                        if (new JSONObject(new JSONObject(new JSONObject(new JSONArray(jsonObject.getString("triggers")).getJSONObject(i).getString("actions")).getString("fakeCall")).getString("ring")).has("fadeOutSeconds")) {
+                            map.put("trigger_action_ring_fadeOutSeconds" + i, new JSONObject(new JSONObject(new JSONObject(new JSONArray(jsonObject.getString("triggers")).getJSONObject(i).getString("actions")).getString("fakeCall")).getString("ring")).getString("fadeOutSeconds"));
+                        }
+                        if (new JSONObject(new JSONObject(new JSONObject(new JSONArray(jsonObject.getString("triggers")).getJSONObject(i).getString("actions")).getString("fakeCall")).getString("ring")).has("volume")) {
+                            map.put("trigger_action_ring_volume" + i, new JSONObject(new JSONObject(new JSONObject(new JSONArray(jsonObject.getString("triggers")).getJSONObject(i).getString("actions")).getString("fakeCall")).getString("ring")).getString("volume"));
+                        }
+                        if (new JSONObject(new JSONObject(new JSONObject(new JSONArray(jsonObject.getString("triggers")).getJSONObject(i).getString("actions")).getString("fakeCall")).getString("ring")).has("playMode")) {
+                            map.put("trigger_action_ring_playMode" + i, new JSONObject(new JSONObject(new JSONObject(new JSONArray(jsonObject.getString("triggers")).getJSONObject(i).getString("actions")).getString("fakeCall")).getString("ring")).getString("playMode"));
+                        }
+                        if (new JSONObject(new JSONObject(new JSONObject(new JSONArray(jsonObject.getString("triggers")).getJSONObject(i).getString("actions")).getString("fakeCall")).getString("ring")).has("repeat")) {
+                            map.put("trigger_action_ring_repeat" + i, new JSONObject(new JSONObject(new JSONObject(new JSONArray(jsonObject.getString("triggers")).getJSONObject(i).getString("actions")).getString("fakeCall")).getString("ring")).getString("repeat"));
+                        }
+                        if (new JSONObject(new JSONObject(new JSONObject(new JSONArray(jsonObject.getString("triggers")).getJSONObject(i).getString("actions")).getString("fakeCall")).getString("ring")).has("assetId")) {
+                            map.put("trigger_action_ring_assetId" + i, new JSONObject(new JSONObject(new JSONObject(new JSONArray(jsonObject.getString("triggers")).getJSONObject(i).getString("actions")).getString("fakeCall")).getString("ring")).getString("assetId"));
+                        }
+                        if (new JSONObject(new JSONObject(new JSONObject(new JSONArray(jsonObject.getString("triggers")).getJSONObject(i).getString("actions")).getString("fakeCall")).getString("call")).has("assetId")) {
+                            map.put("trigger_action_call_assetId" + i, new JSONObject(new JSONObject(new JSONObject(new JSONArray(jsonObject.getString("triggers")).getJSONObject(i).getString("actions")).getString("fakeCall")).getString("call")).getString("assetId"));
+                        }
+                        if (new JSONObject(new JSONObject(new JSONObject(new JSONArray(jsonObject.getString("triggers")).getJSONObject(i).getString("actions")).getString("fakeCall")).getString("call")).has("instanceId")) {
+                            map.put("trigger_action_call_instanceId" + i, new JSONObject(new JSONObject(new JSONObject(new JSONArray(jsonObject.getString("triggers")).getJSONObject(i).getString("actions")).getString("fakeCall")).getString("call")).getString("instanceId"));
+                        }
+                        if (new JSONObject(new JSONObject(new JSONObject(new JSONArray(jsonObject.getString("triggers")).getJSONObject(i).getString("actions")).getString("fakeCall")).getString("call")).has("pause")) {
+                            map.put("trigger_action_call_pause" + i, new JSONObject(new JSONObject(new JSONObject(new JSONArray(jsonObject.getString("triggers")).getJSONObject(i).getString("actions")).getString("fakeCall")).getString("call")).getString("pause"));
+                        }
+                        if (new JSONObject(new JSONObject(new JSONObject(new JSONArray(jsonObject.getString("triggers")).getJSONObject(i).getString("actions")).getString("fakeCall")).getString("call")).has("currentTime")) {
+                            map.put("trigger_action_call_currentTime" + i, new JSONObject(new JSONObject(new JSONObject(new JSONArray(jsonObject.getString("triggers")).getJSONObject(i).getString("actions")).getString("fakeCall")).getString("call")).getString("currentTime"));
+                        }
+                        if (new JSONObject(new JSONObject(new JSONObject(new JSONArray(jsonObject.getString("triggers")).getJSONObject(i).getString("actions")).getString("fakeCall")).getString("call")).has("fadeInSeconds")) {
+                            map.put("trigger_action_call_fadeInSeconds" + i, new JSONObject(new JSONObject(new JSONObject(new JSONArray(jsonObject.getString("triggers")).getJSONObject(i).getString("actions")).getString("fakeCall")).getString("call")).getString("fadeInSeconds"));
+                        }
+                        if (new JSONObject(new JSONObject(new JSONObject(new JSONArray(jsonObject.getString("triggers")).getJSONObject(i).getString("actions")).getString("fakeCall")).getString("call")).has("fadeOutSeconds")) {
+                            map.put("trigger_action_call_fadeOutSeconds" + i, new JSONObject(new JSONObject(new JSONObject(new JSONArray(jsonObject.getString("triggers")).getJSONObject(i).getString("actions")).getString("fakeCall")).getString("call")).getString("fadeOutSeconds"));
+                        }
+                        if (new JSONObject(new JSONObject(new JSONObject(new JSONArray(jsonObject.getString("triggers")).getJSONObject(i).getString("actions")).getString("fakeCall")).getString("call")).has("volume")) {
+                            map.put("trigger_action_call_volume" + i, new JSONObject(new JSONObject(new JSONObject(new JSONArray(jsonObject.getString("triggers")).getJSONObject(i).getString("actions")).getString("fakeCall")).getString("call")).getString("volume"));
+                        }
+                        if (new JSONObject(new JSONObject(new JSONObject(new JSONArray(jsonObject.getString("triggers")).getJSONObject(i).getString("actions")).getString("fakeCall")).getString("call")).has("playMode")) {
+                            map.put("trigger_action_call_playMode" + i, new JSONObject(new JSONObject(new JSONObject(new JSONArray(jsonObject.getString("triggers")).getJSONObject(i).getString("actions")).getString("fakeCall")).getString("call")).getString("playMode"));
+                        }
+                        if (new JSONObject(new JSONObject(new JSONObject(new JSONArray(jsonObject.getString("triggers")).getJSONObject(i).getString("actions")).getString("fakeCall")).getString("call")).has("repeat")) {
+                            map.put("trigger_action_call_repeat" + i, new JSONObject(new JSONObject(new JSONObject(new JSONArray(jsonObject.getString("triggers")).getJSONObject(i).getString("actions")).getString("fakeCall")).getString("call")).getString("repeat"));
+                        }
+                        if (new JSONObject(new JSONObject(new JSONObject(new JSONArray(jsonObject.getString("triggers")).getJSONObject(i).getString("actions")).getString("fakeCall")).getString("call")).has("assetId")) {
+                            map.put("trigger_action_call_assetId" + i, new JSONObject(new JSONObject(new JSONObject(new JSONArray(jsonObject.getString("triggers")).getJSONObject(i).getString("actions")).getString("fakeCall")).getString("call")).getString("assetId"));
+                        }
+                    }
+
+                }
 
             }
+
 
         } catch (JSONException e) {
             e.printStackTrace();
         }
         return map;
     }
+
 
 //    public String[] TriggerParser(JSONObject jsonObject) {
 //        String[] result = new String[2];
