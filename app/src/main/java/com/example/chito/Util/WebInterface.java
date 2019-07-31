@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.app.DownloadManager;
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.media.AudioManager;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Environment;
@@ -29,10 +30,12 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.Map;
 
 import static android.content.Context.DOWNLOAD_SERVICE;
 
 public class WebInterface extends Object{
+    public static String TAG = "WebInterface";
     public static Context context;
     public static WebPresenter webPresenter;
 
@@ -58,12 +61,14 @@ public class WebInterface extends Object{
         new PlayBook_Downloader().execute("http://chito-test.nya.tw:3000/api/v1/playbooks/" + book_id,book_id);
     }
     @JavascriptInterface
-    public static void loadHtmlUrl(final String book_id, final String html_id){
+    public static void loadHtmlUrl(final String book_id, final String next_sceneId){
         PlayBookActivity.webView.post(new Runnable() {
             @Override
             public void run() {
-                PlayBookActivity.webView.loadUrl("file://"+Environment.getExternalStorageDirectory()+"/story_assets/s"+book_id+"/"+html_id+".html");
-                webPresenter.playSound(context,"",true);
+                Map<String,String> story_map = webPresenter.FindSceneById(PlayBookActivity.scenes_list,next_sceneId);
+                PlayBookActivity.startPlayBook(story_map,PlayBookActivity.scenes_list);
+                AudioManager audioManager = (AudioManager)context.getSystemService(Context.AUDIO_SERVICE);
+                webPresenter.playSound(context,"1","8",true,audioManager,5,0);
             }
         });
     }

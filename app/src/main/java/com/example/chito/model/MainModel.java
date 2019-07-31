@@ -7,11 +7,14 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.res.AssetFileDescriptor;
+import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.net.ConnectivityManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Environment;
+import android.os.Handler;
+import android.provider.MediaStore;
 import android.support.v4.app.ActivityCompat;
 import android.util.Log;
 
@@ -159,12 +162,45 @@ public class MainModel {
         return result;
     }
 
-    public MediaPlayer playSound(final Context context, final String fileName, boolean loop) {
-        MediaPlayer mp = MediaPlayer.create(context, Uri.parse("file:///"+Environment.getExternalStorageDirectory()+"/story_assets/s"+1+"/8.mp3"));
+    public MediaPlayer playSound(final Context context, final String book_id, final String fileName, boolean loop, final AudioManager audioManager, final int fadeIn_sec, int fadeOut_sec) {
+        final MediaPlayer mp = MediaPlayer.create(context, Uri.parse("file:///"+Environment.getExternalStorageDirectory()+"/story_assets/s"+book_id+"/"+fileName+".mp3"));
+        Log.d("Audio_path",Uri.parse("file:///"+Environment.getExternalStorageDirectory()+"/story_assets/s"+book_id+"/"+fileName+".mp3")+"");
+//        fadeOut(mp,fadeOut_sec,audioManager);
         mp.setLooping(true);
         mp.start();
+        //20190731
+        final Handler h = new Handler();
+        h.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                int timer = 0;
+                float volume = 1f;
+                float speed = 0.05f;
+                volume = FadeIn(mp,fadeIn_sec,volume,speed);
+                Log.d("FadeInvolume",volume+"");
+                if (timer < 5) {
+                    h.postDelayed(this , 1000);
+                    timer++;
+                }
+            }
+        }, 100); // 1 second delay (takes millis)
+
         return mp;
     }
+    public float FadeOut(MediaPlayer mp,float deltaTime, float volume, float speed)
+    {
+        mp.setVolume(volume, volume);
+        volume -= speed* deltaTime;
+        return volume;
+    }
+    public float FadeIn(MediaPlayer mp,float deltaTime, float volume, float speed)
+    {
+        mp.setVolume(volume, volume);
+        volume += speed* deltaTime;
+        Log.d("FadeIn",volume+"");
+        return volume;
+    }
+
 
     public boolean Isempty(JSONObject jsonObject,String sort) throws JSONException {
         boolean flag = false;
@@ -313,7 +349,7 @@ public class MainModel {
                 Log.d("jsonArray_audio", jsonArray_audio.length() + "");
                 if (new JSONObject(new JSONObject(jsonObject.getString("initial")).getString("audio")).has("tracks")) {
                     for (int i = 0; i < jsonArray_audio.length(); i++) {
-                        Log.d("迴圈=" + i, i + "");
+//                        Log.d("迴圈=" + i, i + "");
                         String instanceId = "";
                         String pause ="";
                         String currentTime ="";

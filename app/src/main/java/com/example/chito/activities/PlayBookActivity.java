@@ -65,15 +65,15 @@ public class PlayBookActivity extends AppCompatActivity implements HtmlView {
     private static WebPresenter webPresenter;
     public  static WebView webView;
 
-    public String book_id = "";
-    public int current_sceneId = 0;
-    public int next_sceneId = 0;
+    public static String book_id = "";
+    public static int current_sceneId = 0;
+    public static int next_sceneId = 0;
 
     public JSONObject json;
     public JSONArray scenes;
 
     public  String result = "";
-    public  List<Map<String,String>> scenes_list;
+    public static List<Map<String,String>> scenes_list;
 
     public boolean IsQR = false;
     public boolean IsGPS = false;
@@ -107,6 +107,7 @@ public class PlayBookActivity extends AppCompatActivity implements HtmlView {
         Intent intent = this.getIntent();
         //取得傳遞過來的資料
         book_id = intent.getStringExtra("book_id");
+        book_id = "1";
         //解析劇本劇情
         scenes_list = new ArrayList<Map<String,String>>();
         try {
@@ -126,19 +127,10 @@ public class PlayBookActivity extends AppCompatActivity implements HtmlView {
             exception.printStackTrace();
         }
 
-        startPlayBook(scenes_list.get(0));
-//        try {
-//            current_sceneId = Integer.parseInt(scenes_list.get(0).get("sceneId")+"");
-//            String first_html = scenes_list.get(0).get("display_assetsId");
-//
-//            String next_sceneId = scenes_list.get(0).get("trigger_action_sceneId0");
-//            loadHtmlUrl("1",first_html,next_sceneId,"0");
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//        }
+        startPlayBook(scenes_list.get(0),scenes_list);
     }
 
-    public static void loadHtmlUrl(final String book_id, final String html_id, final String next_html, final String flag){
+    public static void loadHtmlUrl(final String book_id , final String html_id , final String next_sceneId , final String flag) {
         webView.loadUrl("file://"+Environment.getExternalStorageDirectory()+"/story_assets/s"+book_id+"/"+html_id+".html");
         webView.setWebViewClient(new WebViewClient()
             {
@@ -157,12 +149,10 @@ public class PlayBookActivity extends AppCompatActivity implements HtmlView {
                             "            }" +
                             "var oDiv = document.getElementById(\"go-next\");\n" +
                             "oDiv.addEventListener(\"click\", function(){\n" +
-                            "    test.loadHtmlUrl(\"" + book_id + "\",\"" + next_html + "\");" +
+                            "    test.loadHtmlUrl(\"" + book_id + "\",\"" + next_sceneId + "\");" +
                             "});");
                     break;
-                }
-
-
+            }
 //                webView.loadUrl("javascript:callJS(\"測試測試\")");
             }
 
@@ -187,24 +177,32 @@ public class PlayBookActivity extends AppCompatActivity implements HtmlView {
         });
     }
 
-    public void startPlayBook(Map<String,String> story_map){
+    public static void loadHtmlUrl(final String book_id , final String html_id) {
+        webView.loadUrl("file://"+Environment.getExternalStorageDirectory()+"/story_assets/s"+book_id+"/"+html_id+".html");
+
+    }
+
+    //劇本流程通用執行邏輯
+    public static void startPlayBook(Map<String,String> story_map,List<Map<String,String>> all_map){
         int trigger_total = Integer.parseInt(story_map.get("triggers_total"));
         current_sceneId = Integer.parseInt(story_map.get("sceneId"));
         String display_type = webPresenter.IsMapNull(story_map,"display_type");
+        String audio_method = webPresenter.IsMapNull(story_map,"display_type");
         String current_html = "";
-        String next_html = "";
-        Map<String,String> sotry = null;
 
         //initial
         if(!display_type.equals("")){
             switch (display_type){
                 case "webview":
                     current_html = webPresenter.IsMapNull(story_map,"display_assetsId");
+                    Log.d("current_htmlidddd",current_html+"");
+                    loadHtmlUrl(book_id,current_html);
                     for(int i=0;i<trigger_total;i++){
                         switch (story_map.get("trigger_type"+i)){
                             case "webviewClick":
                                 next_sceneId = Integer.parseInt(story_map.get("trigger_action_sceneId"+i));
-                                loadHtmlUrl("1",current_html,next_html,"0");
+//                                next_html = webPresenter.FindSceneById(all_map,next_sceneId+"").get("display_assetsId");
+                                loadHtmlUrl(book_id,current_html,next_sceneId+"","0");
                                 break;
                         }
                     }
@@ -214,10 +212,22 @@ public class PlayBookActivity extends AppCompatActivity implements HtmlView {
                     break;
             }
         }
+        //triggers
+        if(!audio_method.equals("")){
+            switch (audio_method){
+                case "update":
+                    for(int i=0;i<trigger_total;i++){
+                        switch (story_map.get("trigger_type"+i)){
+                            case "webviewClick":
+                                next_sceneId = Integer.parseInt(story_map.get("trigger_action_sceneId"+i));
+                                loadHtmlUrl(book_id,current_html,next_sceneId+"","0");
+                                break;
+                        }
+                    }
+                    break;
 
-
-
-
+            }
+        }
     }
 
     @Override

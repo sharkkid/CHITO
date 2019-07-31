@@ -2,6 +2,7 @@ package com.example.chito.presenter;
 
 import android.app.Activity;
 import android.content.Context;
+import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.net.ConnectivityManager;
 import android.view.Window;
@@ -79,8 +80,8 @@ public class WebPresenter {
     }
 
     //播放聲音檔
-    public MediaPlayer playSound(final Context context, final String fileName, boolean loop) {
-        return mainModel.playSound(context, fileName, loop);
+    public MediaPlayer playSound(final Context context, final String book_id, final String fileName, boolean loop, final AudioManager audioManager, int fadeIn_sec, int fadeOut_sec) {
+        return mainModel.playSound(context,book_id, fileName, loop,audioManager,fadeIn_sec,fadeOut_sec);
     }
 
     //JSON處理
