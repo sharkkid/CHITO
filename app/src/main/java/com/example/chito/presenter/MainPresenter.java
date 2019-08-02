@@ -14,6 +14,7 @@ import android.util.Log;
 
 import com.example.chito.Util.Beacon;
 import com.example.chito.Util.BeaconFormateNotFoundException;
+import com.example.chito.activities.MainActivity;
 import com.example.chito.model.MainModel;
 import com.example.chito.view.MainView;
 
@@ -32,9 +33,10 @@ public class MainPresenter {
     private MainModel mainModel;
 
     //權限
-    public static final int ACCESS_FINE_LOCATION_CODE = 1;
-    public static final int REQUEST_ENABLE_BT_CODE = 2;
+    public static final int  ACCESS_FINE_LOCATION_CODE = 1;
+    public static final int  REQUEST_ENABLE_BT_CODE = 2;
     public static final int  OVERLAY_PERMISSION_REQ_CODE = 3;
+    public static final int  ACCESS_COARSE_LOCATION = 4;
 
 
     public MainPresenter(MainView mainView, MainModel mainModel){
@@ -114,4 +116,7 @@ public class MainPresenter {
         return mainModel.haveStoragePermission(activity);
     }
 
+    public boolean checkGpsStatus(Activity activity) {
+        return mainModel.checkGpsStatus(activity);
+    }
 }

@@ -186,6 +186,9 @@ public class MainActivity extends AppCompatActivity implements MainView {
             });
             dialog.show();
         }
+        if(mainPresenter.checkGpsStatus(MainActivity.this)){
+
+        }
 }
     @Override
     public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {

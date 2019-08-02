@@ -2,4 +2,9 @@
     <string name="app_name">CHITO</string>
     <string name="todo">TODO</string>
     <string name="fakecall">fakecall_img</string>
+    <string name="cancel">取消</string>
+    <string name="ok">前往</string>
+    <string name="gps_warning_title">請開啟GPS功能！</string>
+    <string name="gps_warning_content">請開啟GPS，以免影響您的體驗！</string>
+
 </resources>

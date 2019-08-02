@@ -80,7 +80,7 @@ public class WebPresenter {
     }
 
     //播放聲音檔
-    public MediaPlayer playSound(final Context context, final String book_id, final String fileName, boolean loop, final AudioManager audioManager, int fadeIn_sec, int fadeOut_sec) {
+    public MediaPlayer playSound(final Context context, final String book_id, final String fileName, boolean loop, final AudioManager audioManager,final int fadeIn_sec, int fadeOut_sec) {
         return mainModel.playSound(context,book_id, fileName, loop,audioManager,fadeIn_sec,fadeOut_sec);
     }
 
@@ -97,5 +97,10 @@ public class WebPresenter {
     //判斷key value是否空值
     public String IsMapNull(Map<String,String> story_map,String key){
         return mainModel.IsMapNull(story_map,key);
+    }
+
+    //確認GPS狀態
+    public boolean checkGpsStatus(Context context){
+        return mainModel.checkGpsStatus(context);
     }
 }

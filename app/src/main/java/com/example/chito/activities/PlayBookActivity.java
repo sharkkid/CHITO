@@ -2,6 +2,7 @@ package com.example.chito.activities;
 
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.app.ActionBar;
 import android.app.AlertDialog;
 import android.app.DownloadManager;
@@ -11,6 +12,8 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.location.LocationListener;
+import android.location.LocationManager;
 import android.net.ConnectivityManager;
 import android.net.Uri;
 import android.os.AsyncTask;
@@ -30,6 +33,7 @@ import android.webkit.WebViewClient;
 import android.widget.Toast;
 
 import com.example.chito.R;
+import com.example.chito.Util.GPSListner;
 import com.example.chito.Util.PlayBookPojo;
 import com.example.chito.Util.WebInterface;
 import com.example.chito.model.MainModel;
@@ -63,7 +67,7 @@ import static android.provider.Settings.ACTION_MANAGE_OVERLAY_PERMISSION;
 
 public class PlayBookActivity extends AppCompatActivity implements HtmlView {
     private static WebPresenter webPresenter;
-    public  static WebView webView;
+    public static WebView webView;
 
     public static String book_id = "";
     public static int current_sceneId = 0;
@@ -72,25 +76,31 @@ public class PlayBookActivity extends AppCompatActivity implements HtmlView {
     public JSONObject json;
     public JSONArray scenes;
 
-    public  String result = "";
-    public static List<Map<String,String>> scenes_list;
+    public String result = "";
+    public static List<Map<String, String>> scenes_list;
 
     public boolean IsQR = false;
     public boolean IsGPS = false;
     public boolean IsBLE = false;
     public boolean IsWIFI = false;
 
+    public static int timer = 0;
+
     private static ProgressDialog progressDialog;
     public static boolean booklist_isDonwloaded = false;
+
+    public static LocationManager locationManager;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         init();
     }
 
+    @SuppressLint("MissingPermission")
     public void init() {
         //主要調配器宣告
-        webPresenter = new WebPresenter(this, new MainModel());
+        webPresenter = new WebPresenter(this , new MainModel());
         webPresenter.onCreate();
 
         webView = findViewById(R.id.PlayBookWebView);
@@ -101,7 +111,7 @@ public class PlayBookActivity extends AppCompatActivity implements HtmlView {
         // 通过addJavascriptInterface()将Java对象映射到JS对象
         //参数1：Javascript对象名
         //参数2：Java对象名
-        webView.addJavascriptInterface(new WebInterface(PlayBookActivity.this, webPresenter), "test");//AndroidtoJS类对象映射到js的test对象
+        webView.addJavascriptInterface(new WebInterface(PlayBookActivity.this , webPresenter) , "test");//AndroidtoJS类对象映射到js的test对象
 
 
         Intent intent = this.getIntent();
@@ -109,22 +119,28 @@ public class PlayBookActivity extends AppCompatActivity implements HtmlView {
         book_id = intent.getStringExtra("book_id");
         book_id = "1";
         //解析劇本劇情
-        scenes_list = new ArrayList<Map<String,String>>();
+        scenes_list = new ArrayList<Map<String, String>>();
         try {
-            result = webPresenter.getFileText(Environment.getExternalStorageDirectory().getPath()+"/story_assets/s1","1.json");
+            result = webPresenter.getFileText(Environment.getExternalStorageDirectory().getPath() + "/story_assets/s1" , "1.json");
             json = new JSONObject(result);
             scenes = json.getJSONArray("scenes");
-            for(int i = 0; i < scenes.length(); i++) {
-                Map<String,String> mapping_story = webPresenter.JsonParser(scenes.getJSONObject(i));
+            for (int i = 0; i < scenes.length(); i++) {
+                Map<String, String> mapping_story = webPresenter.JsonParser(scenes.getJSONObject(i));
                 scenes_list.add(mapping_story);
-                Log.d("mapping_story "+i, String.valueOf(mapping_story));
+                Log.d("mapping_story " + i , String.valueOf(mapping_story));
             }
 //            Log.d("mapping_story", String.valueOf(scenes_list));
         } catch (IOException | JSONException e) {
             e.printStackTrace();
-        }
-        catch (IllegalStateException | JsonSyntaxException exception){
+        } catch (IllegalStateException | JsonSyntaxException exception) {
             exception.printStackTrace();
+        }
+        //取得GPS
+        locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+        if (webPresenter.checkGpsStatus(PlayBookActivity.this)) {
+            LocationListener locationListener = new GPSListner(PlayBookActivity.this);
+            locationManager.requestLocationUpdates(
+                    LocationManager.GPS_PROVIDER , 0 , 10 , locationListener);
         }
 
         startPlayBook(scenes_list.get(0),scenes_list);

@@ -4,9 +4,9 @@ import android.Manifest;
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.content.Context;
-import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.content.res.AssetFileDescriptor;
+import android.location.LocationListener;
+import android.location.LocationManager;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.net.ConnectivityManager;
@@ -14,13 +14,14 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Environment;
 import android.os.Handler;
-import android.provider.MediaStore;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.util.Log;
 
+import com.example.chito.Util.GPSListner;
+import com.example.chito.activities.PlayBookActivity;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
@@ -82,6 +83,18 @@ public class MainModel {
         }
 
         return flag;
+    }
+
+    public boolean checkGpsStatus(Context context){
+        //詢問是否存取位置資訊
+        if (ContextCompat.checkSelfPermission( context, android.Manifest.permission.ACCESS_COARSE_LOCATION ) != PackageManager.PERMISSION_GRANTED ) {
+            Log.d("checkGpsStatus","Yes");
+            return true;
+        }
+        else{
+            Log.d("checkGpsStatus","No");
+            return false;
+        }
     }
 
     public  boolean haveStoragePermission(Activity activity) {
@@ -162,28 +175,55 @@ public class MainModel {
         return result;
     }
 
-    public MediaPlayer playSound(final Context context, final String book_id, final String fileName, boolean loop, final AudioManager audioManager, final int fadeIn_sec, int fadeOut_sec) {
+    public MediaPlayer playSound(final Context context, final String book_id, final String fileName, boolean loop, final AudioManager audioManager, final int fadeIn_sec, final int fadeOut_sec) {
         final MediaPlayer mp = MediaPlayer.create(context, Uri.parse("file:///"+Environment.getExternalStorageDirectory()+"/story_assets/s"+book_id+"/"+fileName+".mp3"));
+        final int audio_duration = mp.getDuration();
+        final double[] volume = {1};
         Log.d("Audio_path",Uri.parse("file:///"+Environment.getExternalStorageDirectory()+"/story_assets/s"+book_id+"/"+fileName+".mp3")+"");
+        Log.d("audio_duration",audio_duration+"");
 //        fadeOut(mp,fadeOut_sec,audioManager);
         mp.setLooping(true);
         mp.start();
         //20190731
-        final Handler h = new Handler();
-        h.postDelayed(new Runnable() {
+        final Handler fadeIn = new Handler();
+        fadeIn.postDelayed(new Runnable() {
             @Override
             public void run() {
-                int timer = 0;
-                float volume = 1f;
                 float speed = 0.05f;
-                volume = FadeIn(mp,fadeIn_sec,volume,speed);
-                Log.d("FadeInvolume",volume+"");
-                if (timer < 5) {
-                    h.postDelayed(this , 1000);
-                    timer++;
+                volume[0] = FadeIn(mp,fadeIn_sec, (float) volume[0] ,speed);
+                Log.d("FadeInvolume", volume[0] +"");
+                Log.d("timer",PlayBookActivity.timer+"");
+                if (PlayBookActivity.timer < 5) {
+                    fadeIn.postDelayed(this , 1000);
+                    PlayBookActivity.timer++;
+                }
+                else{
+                    fadeIn.removeCallbacksAndMessages(null);
                 }
             }
-        }, 100); // 1 second delay (takes millis)
+        }, 1000); // 1 second delay (takes millis)
+
+        //20190731 fadeOut
+        final Handler fadeOut = new Handler();
+        fadeOut.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                float speed = 0.05f;
+                Log.d("CurrentPosition",mp.getCurrentPosition()+"");
+                if ( mp.getCurrentPosition() > (audio_duration - fadeOut_sec)) {
+                    volume[0] = FadeOut(mp,fadeIn_sec, (float) volume[0] ,speed);
+                    PlayBookActivity.timer++;
+                }
+                else if( mp.getCurrentPosition() < (audio_duration - (fadeOut_sec*1000))){
+                    fadeOut.postDelayed(this , 1000);
+                }
+                else if( mp.getCurrentPosition() == audio_duration){
+                    fadeOut.removeCallbacksAndMessages(null);
+                    mp.stop();
+                }
+            }
+        }, 1000); // 1 second delay (takes millis)
+
 
         return mp;
     }
