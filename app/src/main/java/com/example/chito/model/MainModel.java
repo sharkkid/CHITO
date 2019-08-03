@@ -86,8 +86,9 @@ public class MainModel {
     }
 
     public boolean checkGpsStatus(Context context){
+        LocationManager locationManager = (LocationManager)context.getSystemService(Context.LOCATION_SERVICE);
         //詢問是否存取位置資訊
-        if (ContextCompat.checkSelfPermission( context, android.Manifest.permission.ACCESS_COARSE_LOCATION ) != PackageManager.PERMISSION_GRANTED ) {
+        if ( locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER) || locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
             Log.d("checkGpsStatus","Yes");
             return true;
         }

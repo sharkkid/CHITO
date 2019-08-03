@@ -6,10 +6,13 @@ import android.app.DownloadManager;
 import android.app.ProgressDialog;
 import android.bluetooth.BluetoothAdapter;
 import android.content.ComponentName;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
+import android.location.Location;
+import android.location.LocationManager;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Environment;
@@ -30,6 +33,7 @@ import com.example.chito.model.BleManagement;
 import com.example.chito.model.MainModel;
 import com.example.chito.presenter.MainPresenter;
 import com.example.chito.view.MainView;
+import com.google.android.gms.location.LocationListener;
 import com.google.gson.Gson;
 
 import org.apache.http.HttpResponse;
@@ -186,10 +190,47 @@ public class MainActivity extends AppCompatActivity implements MainView {
             });
             dialog.show();
         }
-        if(mainPresenter.checkGpsStatus(MainActivity.this)){
+        if(!mainPresenter.checkGpsStatus(MainActivity.this)){
+            AlertDialog.Builder dialog = new AlertDialog.Builder(MainActivity.this);
+            dialog.setTitle("GPS定位權限請求!");
+            dialog.setMessage("請允許本程式GPS定位權限!");
+            dialog.setPositiveButton("前往",new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface arg0, int arg1) {
+                    // TODO Auto-generated method stub
+                    Intent enableIntent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS );
+                    startActivityForResult( enableIntent, mainPresenter.ACCESS_COARSE_LOCATION );
+                }
+            });
+            dialog.setNegativeButton("拒絕",new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface arg0, int arg1) {
+                    // TODO Auto-generated method stub
+                }
+            });
+            dialog.show();
+        }else{
+            try {
+                LocationManager locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
+                Location location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+                if (location == null) {
+                    location = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+                }
+
+                Double latitude = location.getLatitude();
+                Double longtitude = location.getLongitude();
+                String TAG = "GPS";
+                Log.d(TAG, "latitude=" + latitude + ",longtitude=" + longtitude);
+            }
+            catch (Exception e){
+
+            }
 
         }
-}
+
+
+    }
+
     @Override
     public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
         switch (requestCode) {
@@ -217,6 +258,15 @@ public class MainActivity extends AppCompatActivity implements MainView {
                 } else {
                     //申请拒绝
                     mainPresenter.showToast("位置權限已拒絕!");
+                }
+                break;
+            case MainPresenter.ACCESS_COARSE_LOCATION:
+                if (grantResults.length > 0
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    // 申请同意
+                } else {
+                    //申请拒绝
+                    Toast.makeText(this, "您已拒絕GPS定位權限，將無法搜尋GPS!", Toast.LENGTH_SHORT).show();
                 }
                 break;
         }

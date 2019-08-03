@@ -12,6 +12,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.net.ConnectivityManager;
@@ -33,6 +34,7 @@ import android.webkit.WebViewClient;
 import android.widget.Toast;
 
 import com.example.chito.R;
+import com.example.chito.Util.CurrentLocation;
 import com.example.chito.Util.GPSListner;
 import com.example.chito.Util.PlayBookPojo;
 import com.example.chito.Util.WebInterface;
@@ -89,7 +91,8 @@ public class PlayBookActivity extends AppCompatActivity implements HtmlView {
     private static ProgressDialog progressDialog;
     public static boolean booklist_isDonwloaded = false;
 
-    public static LocationManager locationManager;
+    CurrentLocation currentLocation;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -136,11 +139,12 @@ public class PlayBookActivity extends AppCompatActivity implements HtmlView {
             exception.printStackTrace();
         }
         //取得GPS
-        locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-        if (webPresenter.checkGpsStatus(PlayBookActivity.this)) {
-            LocationListener locationListener = new GPSListner(PlayBookActivity.this);
-            locationManager.requestLocationUpdates(
-                    LocationManager.GPS_PROVIDER , 0 , 10 , locationListener);
+        if (!webPresenter.checkGpsStatus(PlayBookActivity.this)) {
+            currentLocation = new CurrentLocation(this);
+            LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,
+                    1,
+                    1, new CurrentLocation(this));
         }
 
         startPlayBook(scenes_list.get(0),scenes_list);
