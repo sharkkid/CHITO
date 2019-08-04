@@ -80,8 +80,8 @@ public class WebPresenter {
     }
 
     //播放聲音檔
-    public MediaPlayer playSound(final Context context, final String book_id, final String fileName, boolean loop, final AudioManager audioManager,final int fadeIn_sec, int fadeOut_sec) {
-        return mainModel.playSound(context,book_id, fileName, loop,audioManager,fadeIn_sec,fadeOut_sec);
+    public MediaPlayer playSound(final Context context, final String book_id, final String fileName, boolean loop, final AudioManager audioManager, final int fadeIn_sec, int fadeOut_sec, int[] audio_finish_flag) {
+        return mainModel.playSound(context,book_id, fileName, loop,audioManager,fadeIn_sec,fadeOut_sec,audio_finish_flag);
     }
 
     //JSON處理
@@ -102,5 +102,9 @@ public class WebPresenter {
     //確認GPS狀態
     public boolean checkGpsStatus(Context context){
         return mainModel.checkGpsStatus(context);
+    }
+
+    public void startGPS(final Context context, float distance, String book_id, int next_sceneId) {
+        mainModel.startGPS(context,distance, book_id, next_sceneId);
     }
 }

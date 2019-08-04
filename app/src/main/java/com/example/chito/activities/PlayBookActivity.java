@@ -15,6 +15,8 @@ import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.media.AudioManager;
+import android.media.MediaPlayer;
 import android.net.ConnectivityManager;
 import android.net.Uri;
 import android.os.AsyncTask;
@@ -88,6 +90,8 @@ public class PlayBookActivity extends AppCompatActivity implements HtmlView {
 
     public static int timer = 0;
 
+    public static MediaPlayer mp;
+
     private static ProgressDialog progressDialog;
     public static boolean booklist_isDonwloaded = false;
 
@@ -147,7 +151,7 @@ public class PlayBookActivity extends AppCompatActivity implements HtmlView {
                     1, new CurrentLocation(this));
         }
 
-        startPlayBook(scenes_list.get(0),scenes_list);
+        startPlayBook(this,scenes_list.get(0),scenes_list);
     }
 
     public static void loadHtmlUrl(final String book_id , final String html_id , final String next_sceneId , final String flag) {
@@ -202,51 +206,72 @@ public class PlayBookActivity extends AppCompatActivity implements HtmlView {
 
     }
 
+    public static void FakeCall(Context context, int ring_id, int call_id) {
+//        Log.d("audio_finish_flag[1]",ring_id+"");
+        Intent fakecall = new Intent(context, FakeCallActivity.class);
+        fakecall.putExtra("book_id",book_id);
+        fakecall.putExtra("ring_id",ring_id);
+        fakecall.putExtra("call_id",call_id);
+        context.startActivity(fakecall);
+    }
+
     //劇本流程通用執行邏輯
-    public static void startPlayBook(Map<String,String> story_map,List<Map<String,String>> all_map){
-        int trigger_total = Integer.parseInt(story_map.get("triggers_total"));
-        current_sceneId = Integer.parseInt(story_map.get("sceneId"));
-        String display_type = webPresenter.IsMapNull(story_map,"display_type");
-        String audio_method = webPresenter.IsMapNull(story_map,"display_type");
-        String current_html = "";
+    public void startPlayBook(Context context,Map<String, String> story_map, List<Map<String, String>> all_map){
+        try {
+            int trigger_total = Integer.parseInt(story_map.get("triggers_total"));
+            current_sceneId = Integer.parseInt(story_map.get("sceneId"));
+            String display_type = webPresenter.IsMapNull(story_map, "display_type");
+            String audio_method = webPresenter.IsMapNull(story_map, "audio_method");
+            String current_html = "";
 
-        //initial
-        if(!display_type.equals("")){
-            switch (display_type){
-                case "webview":
-                    current_html = webPresenter.IsMapNull(story_map,"display_assetsId");
-                    Log.d("current_htmlidddd",current_html+"");
-                    loadHtmlUrl(book_id,current_html);
-                    for(int i=0;i<trigger_total;i++){
-                        switch (story_map.get("trigger_type"+i)){
-                            case "webviewClick":
-                                next_sceneId = Integer.parseInt(story_map.get("trigger_action_sceneId"+i));
-//                                next_html = webPresenter.FindSceneById(all_map,next_sceneId+"").get("display_assetsId");
-                                loadHtmlUrl(book_id,current_html,next_sceneId+"","0");
-                                break;
+            //initial
+            if (!display_type.equals("")) {
+                switch (display_type) {
+                    case "webview":
+                        current_html = webPresenter.IsMapNull(story_map, "display_assetsId");
+                        Log.d("current_htmlidddd", current_html + "");
+                        loadHtmlUrl(book_id, current_html);
+                        for (int i = 0; i < trigger_total; i++) {
+                            switch (story_map.get("trigger_type" + i)) {
+                                case "webviewClick":
+                                    next_sceneId = Integer.parseInt(story_map.get("trigger_action_sceneId" + i));
+                                    loadHtmlUrl(book_id, current_html, next_sceneId + "", "0");
+                                    break;
+                            }
                         }
-                    }
-                    break;
-                case "ar":
+                        break;
+                    case "ar":
 
-                    break;
+                        break;
+                }
+            }
+            //triggers
+            if (!audio_method.equals("")) {
+                for (int i = 0; i < trigger_total; i++) {
+                    int[] audio_finish_flag = {0,0,0};//flag , ring_asset_id, call_assetid;
+                    String audio_assetId = story_map.get("audio_assetId" + i);
+                    if(webPresenter.IsMapNull(story_map, "trigger_type"+i).toString().equals("audioFinish")){
+                        audio_finish_flag[0] = 1;
+                        audio_finish_flag[1] = Integer.parseInt(webPresenter.IsMapNull(story_map, "trigger_action_ring_assetId"+i));
+                        audio_finish_flag[2] = Integer.parseInt(webPresenter.IsMapNull(story_map, "trigger_action_call_assetId"+i));
+
+                    }
+                    AudioManager audioManager = (AudioManager)context.getSystemService(Context.AUDIO_SERVICE);
+                    mp = webPresenter.playSound(context,"1",audio_assetId,true,audioManager,5,0,audio_finish_flag);
+                    switch (story_map.get("trigger_type" + i)) {
+                        case "gps":
+                            next_sceneId = Integer.parseInt(story_map.get("trigger_action_sceneId" + i));
+                            Log.d("next_sceneId",next_sceneId+"");
+                            webPresenter.startGPS(this,30,book_id,next_sceneId);
+//                            WebInterface.loadHtmlUrl(book_id, next_sceneId+"");
+                            break;
+                    }
+                }
+
             }
         }
-        //triggers
-        if(!audio_method.equals("")){
-            switch (audio_method){
-                case "update":
-                    for(int i=0;i<trigger_total;i++){
-                        switch (story_map.get("trigger_type"+i)){
-                            case "webviewClick":
-                                next_sceneId = Integer.parseInt(story_map.get("trigger_action_sceneId"+i));
-                                loadHtmlUrl(book_id,current_html,next_sceneId+"","0");
-                                break;
-                        }
-                    }
-                    break;
-
-            }
+        catch (Exception e){
+            Log.d("Exception",e.toString());
         }
     }
 

@@ -1,10 +1,15 @@
 package com.example.chito.model;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.bluetooth.BluetoothAdapter;
 import android.content.Context;
+import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.media.AudioManager;
@@ -14,11 +19,16 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Environment;
 import android.os.Handler;
+import android.provider.Settings;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.example.chito.Util.GPSListner;
+import com.example.chito.Util.WebInterface;
+import com.example.chito.activities.FakeCallActivity;
+import com.example.chito.activities.MainActivity;
 import com.example.chito.activities.PlayBookActivity;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -38,25 +48,27 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static android.content.Context.LOCATION_SERVICE;
+import static android.support.v4.app.ActivityCompat.startActivityForResult;
+
 public class MainModel {
 
-    public int  IsBlueToothOpen(BluetoothAdapter mBtAdapter) {// 0:無藍芽裝置 1:有,但未開啟 2:有,已開啟
+    public int IsBlueToothOpen(BluetoothAdapter mBtAdapter) {// 0:無藍芽裝置 1:有,但未開啟 2:有,已開啟
         //檢查裝置是否支援藍芽
         int flag = 0;
         if (mBtAdapter != null) {
             // 檢查藍牙是否開啟
             if (!mBtAdapter.isEnabled()) {
                 flag = 1;
-            }
-            else{
+            } else {
                 flag = 2;
             }
-        }
-        else{
+        } else {
             flag = 0;
         }
         return flag;
     }
+
     public String bytesToHex(byte[] bytes) {
 
         char[] hexArray = "0123456789ABCDEF".toCharArray();
@@ -70,62 +82,59 @@ public class MainModel {
         return new String(hexChars);
     }
 
-    public boolean checkNetworkState(Context context,ConnectivityManager manager) {
+    public boolean checkNetworkState(Context context, ConnectivityManager manager) {
         boolean flag = false;
         //得到網路連線資訊
         manager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
         //去進行判斷網路是否連線
         if (manager.getActiveNetworkInfo() != null) {
             flag = true;
-        }
-        else{
+        } else {
             flag = false;
         }
 
         return flag;
     }
 
-    public boolean checkGpsStatus(Context context){
-        LocationManager locationManager = (LocationManager)context.getSystemService(Context.LOCATION_SERVICE);
+    public boolean checkGpsStatus(Context context) {
+        LocationManager locationManager = (LocationManager) context.getSystemService(LOCATION_SERVICE);
         //詢問是否存取位置資訊
-        if ( locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER) || locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
-            Log.d("checkGpsStatus","Yes");
+        if (locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER) || locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
+            Log.d("checkGpsStatus", "Yes");
             return true;
-        }
-        else{
-            Log.d("checkGpsStatus","No");
+        } else {
+            Log.d("checkGpsStatus", "No");
             return false;
         }
     }
 
-    public  boolean haveStoragePermission(Activity activity) {
+    public boolean haveStoragePermission(Activity activity) {
         if (Build.VERSION.SDK_INT >= 23) {
             if (activity.checkSelfPermission(android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
                     == PackageManager.PERMISSION_GRANTED) {
-                Log.e("Permission error","You have permission");
+                Log.e("Permission error", "You have permission");
                 return true;
             } else {
 
-                Log.e("Permission error","You have asked for permission");
+                Log.e("Permission error", "You have asked for permission");
                 ActivityCompat.requestPermissions(activity, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 1);
                 return false;
             }
-        }
-        else { //you dont need to worry about these stuff below api level 23
-            Log.e("Permission error","You already have the permission");
+        } else { //you dont need to worry about these stuff below api level 23
+            Log.e("Permission error", "You already have the permission");
             return true;
         }
     }
 
-    public boolean isFileExists(String dirname,String filename){
-        File folder1 = new File(Environment.getExternalStorageDirectory().getPath()+dirname+"/"+filename);
-        Log.d(filename+"=isFileExists",Environment.getExternalStorageDirectory().getPath()+dirname+"/"+filename);
-        Log.d(filename+"=isFileExists",folder1.exists()+"");
+    public boolean isFileExists(String dirname, String filename) {
+        File folder1 = new File(Environment.getExternalStorageDirectory().getPath() + dirname + "/" + filename);
+        Log.d(filename + "=isFileExists", Environment.getExternalStorageDirectory().getPath() + dirname + "/" + filename);
+        Log.d(filename + "=isFileExists", folder1.exists() + "");
         return folder1.exists();
     }
 
-    public void deleteFile(String dirname,String filename){
-        File folder1 = new File(Environment.getExternalStorageDirectory().getPath()+dirname+"/"+filename);
+    public void deleteFile(String dirname, String filename) {
+        File folder1 = new File(Environment.getExternalStorageDirectory().getPath() + dirname + "/" + filename);
 //        Log.d(filename+"=deleteFile",folder1.delete()+"");
         folder1.delete();
     }
@@ -151,8 +160,7 @@ public class MainModel {
         return result;
     }
 
-    public String toPrettyFormat(String jsonString)
-    {
+    public String toPrettyFormat(String jsonString) {
         JsonParser parser = new JsonParser();
         JsonObject json = parser.parse(jsonString).getAsJsonObject();
 
@@ -162,11 +170,11 @@ public class MainModel {
         return prettyJson;
     }
 
-    public JSONObject getJSONObjectById(String id, ArrayList<JSONObject> jsonArray){
+    public JSONObject getJSONObjectById(String id, ArrayList<JSONObject> jsonArray) {
         JSONObject result = null;
-        for(int i=0;i<jsonArray.size();i++){
+        for (int i = 0; i < jsonArray.size(); i++) {
             try {
-                if(jsonArray.get(i).getString("id").equals(id)){
+                if (jsonArray.get(i).getString("id").equals(id)) {
                     result = jsonArray.get(i);
                 }
             } catch (JSONException e) {
@@ -176,7 +184,48 @@ public class MainModel {
         return result;
     }
 
-    public MediaPlayer playSound(final Context context, final String book_id, final String fileName, boolean loop, final AudioManager audioManager, final int fadeIn_sec, final int fadeOut_sec) {
+    @SuppressLint("MissingPermission")
+    public void startGPS(final Context context, float distance, final String book_id, final int next_sceneId) {
+        final Handler gps = new Handler();
+        gps.postDelayed(new Runnable() {
+            public void run() {
+                PlayBookActivity.mp.stop();
+                WebInterface.loadHtmlUrl(book_id, next_sceneId+"");
+            }
+        }, 2000); // 1 second delay (takes millis)
+
+//        final Handler gps = new Handler();
+//        gps.postDelayed(new Runnable() {
+//            @SuppressLint("MissingPermission")
+//            @Override
+//            public void run() {
+//                @SuppressLint("MissingPermission") Location location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+//                if (location == null) {
+//                    location = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+//                }
+//                Location location1 = new Location("");
+//                location1.setLatitude(25.30996394);
+//                location1.setLongitude(120.37138994);
+//
+//                Double latitude = location.getLatitude();
+//                Double longtitude = location.getLongitude();
+//                String TAG = "GPS";
+//                Toast.makeText(context,"latitude=" + latitude + ",longtitude=" + longtitude,Toast.LENGTH_SHORT).show();
+//                Log.d(TAG, "latitude=" + latitude + ",longtitude=" + longtitude);
+//                if (IsGPSClosed(location1,location,30)) {
+//                    gps.postDelayed(this , 1000);
+//
+//                }
+//                else{
+//
+//                }
+//            }
+//        }, 100); // 1 second delay (takes millis)
+
+
+    }
+
+    public MediaPlayer playSound(final Context context, final String book_id, final String fileName, boolean loop, final AudioManager audioManager, final int fadeIn_sec, final int fadeOut_sec, final int[] audio_finish_flag) {
         final MediaPlayer mp = MediaPlayer.create(context, Uri.parse("file:///"+Environment.getExternalStorageDirectory()+"/story_assets/s"+book_id+"/"+fileName+".mp3"));
         final int audio_duration = mp.getDuration();
         final double[] volume = {1};
@@ -225,6 +274,27 @@ public class MainModel {
             }
         }, 1000); // 1 second delay (takes millis)
 
+        //20190731 audio_finish
+        if(audio_finish_flag[0]==1) {
+            Log.d("audio_finish_flag","Yes");
+
+            final Handler audio_finish = new Handler();
+            audio_finish.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    mp.stop();
+
+                    PlayBookActivity.FakeCall(context,audio_finish_flag[1],audio_finish_flag[2]);
+//                    if (mp.getCurrentPosition() < audio_duration) {
+//                        audio_finish.postDelayed(this, 100);
+//                    } else if (mp.getCurrentPosition() > 9933) {
+//                        fadeOut.removeCallbacksAndMessages(null);
+//                        mp.stop();
+//                        new PlayBookActivity().FakeCall(context,audio_finish_flag[1],audio_finish_flag[2]);
+//                    }
+                }
+            }, 5000); // 1 second delay (takes millis)
+        }
 
         return mp;
     }
@@ -277,10 +347,24 @@ public class MainModel {
 
     public String IsMapNull(Map<String,String> story_map,String key){
         String tmp = "";
-        if(!story_map.get(key).isEmpty()){
-            tmp = story_map.get(key);
+        if(story_map.containsKey(key)){
+            tmp = story_map.get(key)+"";
+        }
+        else{
+            tmp = "";
         }
         return tmp;
+    }
+
+    //計算兩點GPS的距離
+    public boolean IsGPSClosed(Location dis, Location curr,float distance){
+        float distanceInMeters = curr.distanceTo(dis);
+        if(distanceInMeters < distance){
+            return true;
+        }
+        else{
+            return false;
+        }
     }
 
     /*

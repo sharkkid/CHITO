@@ -42,7 +42,7 @@ public class WebInterface extends Object{
     public static boolean playbook_isDonwloaded = false;
     public static int playbook_isDonwloaded_n = 0;
     public static int playbook_isDonwloaded_max = 0;
-
+    public static PlayBookActivity playBookActivity;
 
     public static ProgressDialog progressDialog;
 
@@ -65,10 +65,9 @@ public class WebInterface extends Object{
         PlayBookActivity.webView.post(new Runnable() {
             @Override
             public void run() {
+                playBookActivity = new PlayBookActivity();
                 Map<String,String> story_map = webPresenter.FindSceneById(PlayBookActivity.scenes_list,next_sceneId);
-                PlayBookActivity.startPlayBook(story_map,PlayBookActivity.scenes_list);
-                AudioManager audioManager = (AudioManager)context.getSystemService(Context.AUDIO_SERVICE);
-                webPresenter.playSound(context,"1","8",true,audioManager,5,0);
+                playBookActivity.startPlayBook(context,story_map,PlayBookActivity.scenes_list);
             }
         });
     }

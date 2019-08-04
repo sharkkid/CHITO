@@ -44,15 +44,24 @@ public class FakeCallActivity extends AppCompatActivity{
     public static boolean booklist_isDonwloaded = false;
     public ImageButton btn_receive,btn_reject;
     public MediaPlayer mediaPlayer;
+    public int MAX_Playable = 15;
+    public int current_play_n = 1;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         init();
-//        playSound(this,"calling.mp3");
+        Intent intent = this.getIntent();
+        //取得傳遞過來的資料
+        String book_id = intent.getStringExtra("book_id");
+        int ring_id = intent.getIntExtra("ring_id",0);
+        int call_id = intent.getIntExtra("call_id",0);
+        playSound(this,book_id,ring_id+"");
+        Log.d("ring_id",ring_id+"");
     }
 
     public void init() {
         //主要調配器宣告
+        //20190804
         setContentView(R.layout.fakecall);
         try
         {
@@ -66,7 +75,7 @@ public class FakeCallActivity extends AppCompatActivity{
         btn_receive.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mediaPlayer.stop();
+//                mediaPlayer.stop();
                 finish();
             }
         });
@@ -74,9 +83,22 @@ public class FakeCallActivity extends AppCompatActivity{
         btn_reject.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mediaPlayer.stop();
+//                mediaPlayer.stop();
                 finish();
             }
         });
+    }
+    public void playSound(Context context,String book_id,String fileName){
+        MediaPlayer mp = MediaPlayer.create(context, Uri.parse("file:///"+Environment.getExternalStorageDirectory()+"/story_assets/s"+book_id+"/"+fileName+".mp3"));
+        Log.d("Audio_path",Uri.parse("file:///"+Environment.getExternalStorageDirectory()+"/story_assets/s"+book_id+"/"+fileName+".mp3")+"");
+        if(current_play_n == MAX_Playable){
+            mp.setLooping(true);
+            mp.stop();
+        }
+        else{
+            current_play_n++;
+        }
+
+        mp.start();
     }
 }
