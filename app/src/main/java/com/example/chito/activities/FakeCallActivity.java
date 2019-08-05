@@ -5,6 +5,7 @@ import android.Manifest;
 import android.app.AlertDialog;
 import android.app.DownloadManager;
 import android.app.ProgressDialog;
+import android.app.Service;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -15,6 +16,7 @@ import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.Vibrator;
 import android.provider.Settings;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
@@ -43,20 +45,20 @@ public class FakeCallActivity extends AppCompatActivity{
     private static ProgressDialog progressDialog;
     public static boolean booklist_isDonwloaded = false;
     public ImageButton btn_receive,btn_reject;
-    public MediaPlayer mediaPlayer;
+    public MediaPlayer mp;
     public int MAX_Playable = 15;
     public int current_play_n = 1;
+    public int ring_id,call_id;
+    public String book_id;
+    public Vibrator myVibrator;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         init();
-        Intent intent = this.getIntent();
-        //取得傳遞過來的資料
-        String book_id = intent.getStringExtra("book_id");
-        int ring_id = intent.getIntExtra("ring_id",0);
-        int call_id = intent.getIntExtra("call_id",0);
+
+
         playSound(this,book_id,ring_id+"");
-        Log.d("ring_id",ring_id+"");
+        vibration(this,mp.getDuration());
     }
 
     public void init() {
@@ -69,14 +71,21 @@ public class FakeCallActivity extends AppCompatActivity{
         }
         catch (NullPointerException e){}
 
+        Intent intent = this.getIntent();
+        //取得傳遞過來的資料
+        book_id = intent.getStringExtra("book_id");
+        ring_id = intent.getIntExtra("ring_id",0);
+        call_id = intent.getIntExtra("call_id",0);
+
         btn_receive = findViewById(R.id.fakecall_receive);
         btn_reject = findViewById(R.id.fakecall_reject);
 
         btn_receive.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-//                mediaPlayer.stop();
-                finish();
+                playSound(FakeCallActivity.this,book_id,call_id+"");
+                btn_receive.setVisibility(View.GONE);
+                btn_reject.setVisibility(View.GONE);
             }
         });
 
@@ -89,16 +98,34 @@ public class FakeCallActivity extends AppCompatActivity{
         });
     }
     public void playSound(Context context,String book_id,String fileName){
-        MediaPlayer mp = MediaPlayer.create(context, Uri.parse("file:///"+Environment.getExternalStorageDirectory()+"/story_assets/s"+book_id+"/"+fileName+".mp3"));
+        try {
+            if (mp.isPlaying()) {
+                mp.stop();
+                myVibrator.cancel();
+            }
+        }
+        catch(Exception e){}
+        mp = MediaPlayer.create(context, Uri.parse("file:///"+Environment.getExternalStorageDirectory()+"/story_assets/s"+book_id+"/"+fileName+".mp3"));
         Log.d("Audio_path",Uri.parse("file:///"+Environment.getExternalStorageDirectory()+"/story_assets/s"+book_id+"/"+fileName+".mp3")+"");
+        mp.setLooping(true);
         if(current_play_n == MAX_Playable){
-            mp.setLooping(true);
+            mp.setLooping(false);
             mp.stop();
         }
         else{
             current_play_n++;
         }
 
+        Log.d("sec",mp.getDuration()+"");
         mp.start();
+    }
+
+    public void vibration(Context context,long sec){
+        long[] vbr = new long[(int) (sec/1000)];
+        for(int i=0;i<vbr.length;i++){
+            vbr[i] = 1000;
+        }
+        myVibrator = (Vibrator) context.getSystemService(Service.VIBRATOR_SERVICE);
+        myVibrator.vibrate(vbr, -1);
     }
 }
