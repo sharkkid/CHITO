@@ -197,11 +197,22 @@ public class WebActivity extends AppCompatActivity implements HtmlView {
 
     @Override
     public void file_downloader(String thumbnail_url, String assets_id) {
+
         Uri uri = Uri.parse(thumbnail_url);
         DownloadManager.Request request = new DownloadManager.Request(uri);
         request.setDestinationInExternalPublicDir("/story_assets/playbook_list", "icon_" + assets_id + ".png");
         DownloadManager manager = (DownloadManager) getSystemService(DOWNLOAD_SERVICE);
         manager.enqueue(request);
+    }
+
+    @Override
+    public void dialog_show(String[] notificationClick , AlertDialog.Builder dialog , Context context) {
+
+    }
+
+    @Override
+    public void dialog_dismiss(AlertDialog dialog) {
+
     }
 
     class PlayBookList_Downloader extends AsyncTask<String, Void, String> {

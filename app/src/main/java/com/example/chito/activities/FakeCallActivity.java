@@ -16,6 +16,7 @@ import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.Handler;
 import android.os.Vibrator;
 import android.provider.Settings;
 import android.support.v4.app.ActivityCompat;
@@ -26,9 +27,11 @@ import android.view.View;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.ImageButton;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.chito.R;
+import com.example.chito.Util.WebInterface;
 import com.example.chito.model.MainModel;
 import com.example.chito.presenter.WebPresenter;
 import com.example.chito.view.HtmlView;
@@ -46,11 +49,14 @@ public class FakeCallActivity extends AppCompatActivity{
     public static boolean booklist_isDonwloaded = false;
     public ImageButton btn_receive,btn_reject;
     public MediaPlayer mp;
+    public TextView ui_name,ui_call_time;
     public int MAX_Playable = 15;
     public int current_play_n = 1;
-    public int ring_id,call_id;
+    public String ring_id,call_id,name,next_sceneId;
     public String book_id;
     public Vibrator myVibrator;
+    public MainModel mainModel;
+    int time = 0;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -62,6 +68,7 @@ public class FakeCallActivity extends AppCompatActivity{
     }
 
     public void init() {
+        mainModel = new MainModel();
         //主要調配器宣告
         //20190804
         setContentView(R.layout.fakecall);
@@ -74,16 +81,48 @@ public class FakeCallActivity extends AppCompatActivity{
         Intent intent = this.getIntent();
         //取得傳遞過來的資料
         book_id = intent.getStringExtra("book_id");
-        ring_id = intent.getIntExtra("ring_id",0);
-        call_id = intent.getIntExtra("call_id",0);
+        ring_id = intent.getStringExtra("ring_id");
+        call_id = intent.getStringExtra("call_id");
+        name = intent.getStringExtra("name");
+        next_sceneId = intent.getStringExtra("next_sceneId");
+        Log.d("next_sceneId",next_sceneId);
 
         btn_receive = findViewById(R.id.fakecall_receive);
         btn_reject = findViewById(R.id.fakecall_reject);
+        ui_name = findViewById(R.id.call_name);
+        ui_name.setText(name);
+        ui_call_time = findViewById(R.id.call_time);
 
         btn_receive.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 playSound(FakeCallActivity.this,book_id,call_id+"");
+                ui_call_time.setVisibility(View.VISIBLE);
+                final Handler pickup = new Handler();
+                pickup.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        ui_call_time.setText((mainModel.secToTime(time)));
+                        time++;
+//                        Log.d("播放時間","current="+mp.getCurrentPosition()+",whole="+mp.getDuration());
+                        if(mp.getCurrentPosition() < (mp.getDuration()-50300)){
+                            pickup.post(this);
+                        }
+                        else{
+                            WebInterface.loadHtmlUrl(book_id,next_sceneId);
+                            pickup.removeCallbacksAndMessages(null);
+                            mp.stop();
+
+                        }
+                        try {
+                            Thread.sleep(1000);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                });
+
+
                 btn_receive.setVisibility(View.GONE);
                 btn_reject.setVisibility(View.GONE);
             }

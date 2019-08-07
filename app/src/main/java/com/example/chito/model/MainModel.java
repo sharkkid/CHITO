@@ -139,6 +139,39 @@ public class MainModel {
         folder1.delete();
     }
 
+    public static String secToTime(int time) {
+        String timeStr = null;
+        int hour = 0;
+        int minute = 0;
+        int second = 0;
+        if (time <= 0)
+            return "00:00";
+        else {
+            minute = time / 60;
+            if (minute < 60) {
+                second = time % 60;
+                timeStr = unitFormat(minute) + ":" + unitFormat(second);
+            } else {
+                hour = minute / 60;
+                if (hour > 99)
+                    return "99:59:59";
+                minute = minute % 60;
+                second = time - hour * 3600 - minute * 60;
+                timeStr = unitFormat(hour) + ":" + unitFormat(minute) + ":" + unitFormat(second);
+            }
+        }
+        return timeStr;
+    }
+
+    public static String unitFormat(int i) {
+        String retStr = null;
+        if (i >= 0 && i < 10)
+            retStr = "0" + Integer.toString(i);
+        else
+            retStr = "" + i;
+        return retStr;
+    }
+
     public String getFileText(String path, String filename) throws IOException {
         String result = "";
         File file = new File(path, filename);
@@ -192,7 +225,7 @@ public class MainModel {
                 PlayBookActivity.mp.stop();
                 WebInterface.loadHtmlUrl(book_id, next_sceneId+"");
             }
-        }, 2000); // 1 second delay (takes millis)
+        }, 5000); // 1 second delay (takes millis)
 
 //        final Handler gps = new Handler();
 //        gps.postDelayed(new Runnable() {
@@ -225,7 +258,7 @@ public class MainModel {
 
     }
 
-    public MediaPlayer playSound(final Context context, final String book_id, final String fileName, boolean loop, final AudioManager audioManager, final int fadeIn_sec, final int fadeOut_sec, final int[] audio_finish_flag) {
+    public MediaPlayer playSound(final Context context, final String book_id, final String fileName, boolean loop, final AudioManager audioManager, final int fadeIn_sec, final int fadeOut_sec, final String[] audio_finish_flag) {
         final MediaPlayer mp = MediaPlayer.create(context, Uri.parse("file:///"+Environment.getExternalStorageDirectory()+"/story_assets/s"+book_id+"/"+fileName+".mp3"));
         final int audio_duration = mp.getDuration();
         final double[] volume = {1};
@@ -259,7 +292,7 @@ public class MainModel {
             @Override
             public void run() {
                 float speed = 0.05f;
-                Log.d("CurrentPosition",mp.getCurrentPosition()+"");
+//                Log.d("CurrentPosition",mp.getCurrentPosition()+"");
                 if ( mp.getCurrentPosition() > (audio_duration - fadeOut_sec)) {
                     volume[0] = FadeOut(mp,fadeIn_sec, (float) volume[0] ,speed);
                     PlayBookActivity.timer++;
@@ -267,15 +300,16 @@ public class MainModel {
                 else if( mp.getCurrentPosition() < (audio_duration - (fadeOut_sec*1000))){
                     fadeOut.postDelayed(this , 1000);
                 }
-                else if( mp.getCurrentPosition() == audio_duration){
+                else if( mp.getCurrentPosition() > (audio_duration-500)){
                     fadeOut.removeCallbacksAndMessages(null);
+                    fadeOut.removeCallbacks(this);
                     mp.stop();
                 }
             }
         }, 1000); // 1 second delay (takes millis)
 
         //20190731 audio_finish
-        if(audio_finish_flag[0]==1) {
+        if(audio_finish_flag[0].equals("1")) {
             Log.d("audio_finish_flag","Yes");
 
             final Handler audio_finish = new Handler();
@@ -283,8 +317,7 @@ public class MainModel {
                 @Override
                 public void run() {
                     mp.stop();
-
-                    PlayBookActivity.FakeCall(context,audio_finish_flag[1],audio_finish_flag[2]);
+                    PlayBookActivity.FakeCall(context,audio_finish_flag[1],audio_finish_flag[2],audio_finish_flag[3],audio_finish_flag[4]);
 //                    if (mp.getCurrentPosition() < audio_duration) {
 //                        audio_finish.postDelayed(this, 100);
 //                    } else if (mp.getCurrentPosition() > 9933) {

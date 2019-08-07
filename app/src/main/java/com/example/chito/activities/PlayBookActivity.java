@@ -5,6 +5,7 @@ import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.ActionBar;
 import android.app.AlertDialog;
+import android.app.Dialog;
 import android.app.DownloadManager;
 import android.app.ProgressDialog;
 import android.content.ComponentName;
@@ -62,6 +63,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -70,7 +72,7 @@ import static android.provider.Settings.ACTION_MANAGE_OVERLAY_PERMISSION;
 
 
 public class PlayBookActivity extends AppCompatActivity implements HtmlView {
-    private static WebPresenter webPresenter;
+    public static WebPresenter webPresenter;
     public static WebView webView;
 
     public static String book_id = "";
@@ -83,6 +85,7 @@ public class PlayBookActivity extends AppCompatActivity implements HtmlView {
     public String result = "";
     public static List<Map<String, String>> scenes_list;
 
+    //判斷Triggers type
     public boolean IsQR = false;
     public boolean IsGPS = false;
     public boolean IsBLE = false;
@@ -90,13 +93,18 @@ public class PlayBookActivity extends AppCompatActivity implements HtmlView {
 
     public static int timer = 0;
 
+    //音樂播放
     public static MediaPlayer mp;
 
+    //進度條
     private static ProgressDialog progressDialog;
     public static boolean booklist_isDonwloaded = false;
 
+    //GPS
     CurrentLocation currentLocation;
 
+    //訊息顯示
+    public static AlertDialog.Builder diglog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -206,12 +214,14 @@ public class PlayBookActivity extends AppCompatActivity implements HtmlView {
 
     }
 
-    public static void FakeCall(Context context, int ring_id, int call_id) {
+    public static void FakeCall(Context context, String ring_id, String call_id,String name,String next_sceneId) {
 //        Log.d("audio_finish_flag[1]",ring_id+"");
         Intent fakecall = new Intent(context, FakeCallActivity.class);
         fakecall.putExtra("book_id",book_id);
         fakecall.putExtra("ring_id",ring_id);
         fakecall.putExtra("call_id",call_id);
+        fakecall.putExtra("name",name);
+        fakecall.putExtra("next_sceneId",next_sceneId);
         context.startActivity(fakecall);
     }
 
@@ -248,13 +258,14 @@ public class PlayBookActivity extends AppCompatActivity implements HtmlView {
             //triggers
             if (!audio_method.equals("")) {
                 for (int i = 0; i < trigger_total; i++) {
-                    int[] audio_finish_flag = {0,0,0};//flag , ring_asset_id, call_assetid;
+                    String[] audio_finish_flag = {"flag","ring_asset_id","call_assetid","name","0"};//flag , ring_asset_id, call_assetid;
                     String audio_assetId = story_map.get("audio_assetId" + i);
                     if(webPresenter.IsMapNull(story_map, "trigger_type"+i).toString().equals("audioFinish")){
-                        audio_finish_flag[0] = 1;
-                        audio_finish_flag[1] = Integer.parseInt(webPresenter.IsMapNull(story_map, "trigger_action_ring_assetId"+i));
-                        audio_finish_flag[2] = Integer.parseInt(webPresenter.IsMapNull(story_map, "trigger_action_call_assetId"+i));
-
+                        audio_finish_flag[0] = "1";
+                        audio_finish_flag[1] = webPresenter.IsMapNull(story_map, "trigger_action_ring_assetId"+i);
+                        audio_finish_flag[2] = webPresenter.IsMapNull(story_map, "trigger_action_call_assetId"+i);
+                        audio_finish_flag[3] = webPresenter.IsMapNull(story_map, "trigger_action_callerName"+i);
+                        audio_finish_flag[4] = webPresenter.IsMapNull(story_map, "trigger_action_sceneId"+i);
                     }
                     AudioManager audioManager = (AudioManager)context.getSystemService(Context.AUDIO_SERVICE);
                     mp = webPresenter.playSound(context,"1",audio_assetId,true,audioManager,5,0,audio_finish_flag);
@@ -264,6 +275,13 @@ public class PlayBookActivity extends AppCompatActivity implements HtmlView {
                             Log.d("next_sceneId",next_sceneId+"");
                             webPresenter.startGPS(this,30,book_id,next_sceneId);
 //                            WebInterface.loadHtmlUrl(book_id, next_sceneId+"");
+                            break;
+                        case "notificationClick":
+                            Log.d("notificationClick","進入"+story_map.get("trigger_type" + i));
+                            String[] notificationClick = {"message","next_sceneId"};//內容   下個場景id
+                            audio_finish_flag[0] = webPresenter.IsMapNull(story_map, "notification_title");
+                            audio_finish_flag[1] = webPresenter.IsMapNull(story_map, "trigger_action_sceneId"+i);
+                            webPresenter.dialog_show(notificationClick,diglog,context);
                             break;
                     }
                 }
@@ -329,7 +347,25 @@ public class PlayBookActivity extends AppCompatActivity implements HtmlView {
         manager.enqueue(request);
     }
 
+    @Override
+    public void dialog_show(final String[] notificationClick, AlertDialog.Builder dialog, Context context) {
+        Log.d("使用dialog_show","使用dialog_show");
+        dialog = new AlertDialog.Builder(context);
+        dialog.setTitle("提示訊息！");
+        dialog.setMessage(notificationClick[0]);
+        dialog.setPositiveButton("確定", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog , int which) {
+                WebInterface.loadHtmlUrl(book_id,notificationClick[1]);
+            }
+        });
+        dialog.show();
+    }
 
+    @Override
+    public void dialog_dismiss(AlertDialog dialog) {
+        dialog.dismiss();
+    }
 
 
 }

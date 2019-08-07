@@ -1,6 +1,7 @@
 package com.example.chito.Util;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.DownloadManager;
 import android.app.ProgressDialog;
 import android.content.Context;
@@ -65,6 +66,7 @@ public class WebInterface extends Object{
         PlayBookActivity.webView.post(new Runnable() {
             @Override
             public void run() {
+                Log.d("loadHtmlUrl被呼叫","loadHtmlUrl被呼叫,next_sceneId="+next_sceneId);
                 playBookActivity = new PlayBookActivity();
                 Map<String,String> story_map = webPresenter.FindSceneById(PlayBookActivity.scenes_list,next_sceneId);
                 playBookActivity.startPlayBook(context,story_map,PlayBookActivity.scenes_list);

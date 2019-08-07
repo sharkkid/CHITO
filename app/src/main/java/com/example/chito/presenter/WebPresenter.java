@@ -1,6 +1,7 @@
 package com.example.chito.presenter;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Context;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
@@ -80,7 +81,7 @@ public class WebPresenter {
     }
 
     //播放聲音檔
-    public MediaPlayer playSound(final Context context, final String book_id, final String fileName, boolean loop, final AudioManager audioManager, final int fadeIn_sec, int fadeOut_sec, int[] audio_finish_flag) {
+    public MediaPlayer playSound(final Context context, final String book_id, final String fileName, boolean loop, final AudioManager audioManager, final int fadeIn_sec, int fadeOut_sec, String[] audio_finish_flag) {
         return mainModel.playSound(context,book_id, fileName, loop,audioManager,fadeIn_sec,fadeOut_sec,audio_finish_flag);
     }
 
@@ -106,5 +107,12 @@ public class WebPresenter {
 
     public void startGPS(final Context context, float distance, String book_id, int next_sceneId) {
         mainModel.startGPS(context,distance, book_id, next_sceneId);
+    }
+
+    public void dialog_show(String[] notificationClick, AlertDialog.Builder dialog, Context context){
+        htmlView.dialog_show(notificationClick,dialog,context);
+    }
+    public void dialog_dismiss(AlertDialog dialog){
+        htmlView.dialog_dismiss(dialog);
     }
 }
