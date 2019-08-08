@@ -214,7 +214,7 @@ public class PlayBookActivity extends AppCompatActivity implements HtmlView {
 
     }
 
-    public static void FakeCall(Context context, String ring_id, String call_id,String name,String next_sceneId) {
+    public static void FakeCall(Context context, String ring_id, String call_id, String name, String next_sceneId, String message, String caller_number) {
 //        Log.d("audio_finish_flag[1]",ring_id+"");
         Intent fakecall = new Intent(context, FakeCallActivity.class);
         fakecall.putExtra("book_id",book_id);
@@ -222,6 +222,9 @@ public class PlayBookActivity extends AppCompatActivity implements HtmlView {
         fakecall.putExtra("call_id",call_id);
         fakecall.putExtra("name",name);
         fakecall.putExtra("next_sceneId",next_sceneId);
+        fakecall.putExtra("message",message);
+        fakecall.putExtra("caller_number",caller_number);
+
         context.startActivity(fakecall);
     }
 
@@ -233,7 +236,7 @@ public class PlayBookActivity extends AppCompatActivity implements HtmlView {
             String display_type = webPresenter.IsMapNull(story_map, "display_type");
             String audio_method = webPresenter.IsMapNull(story_map, "audio_method");
             String current_html = "";
-
+            Log.d("current_sceneId",current_sceneId+"");
             //initial
             if (!display_type.equals("")) {
                 switch (display_type) {
@@ -256,19 +259,26 @@ public class PlayBookActivity extends AppCompatActivity implements HtmlView {
                 }
             }
             //triggers
-            if (!audio_method.equals("")) {
+//            if (!audio_method.equals("")) {
                 for (int i = 0; i < trigger_total; i++) {
-                    String[] audio_finish_flag = {"flag","ring_asset_id","call_assetid","name","0"};//flag , ring_asset_id, call_assetid;
+                    String[] audio_finish_flag = {"flag","ring_asset_id","call_assetid","name","0","0","0"};//flag , ring_asset_id, call_assetid, caller_name, next_sceneId, fakecallDecline_sceneId, caller_number;
                     String audio_assetId = story_map.get("audio_assetId" + i);
                     if(webPresenter.IsMapNull(story_map, "trigger_type"+i).toString().equals("audioFinish")){
                         audio_finish_flag[0] = "1";
                         audio_finish_flag[1] = webPresenter.IsMapNull(story_map, "trigger_action_ring_assetId"+i);
                         audio_finish_flag[2] = webPresenter.IsMapNull(story_map, "trigger_action_call_assetId"+i);
-                        audio_finish_flag[3] = webPresenter.IsMapNull(story_map, "trigger_action_callerName"+i);
+                        audio_finish_flag[3] = webPresenter.IsMapNull(story_map, "trigger_action_callerName");
                         audio_finish_flag[4] = webPresenter.IsMapNull(story_map, "trigger_action_sceneId"+i);
+                        if(!webPresenter.IsMapNull(story_map, "trigger_action_fakecallFinish").equals("")) {
+                            audio_finish_flag[4] = webPresenter.IsMapNull(story_map , "trigger_action_fakecallFinish");
+                            audio_finish_flag[5] = webPresenter.IsMapNull(story_map, "trigger_action_fakecallDeclined");
+                            audio_finish_flag[6] = webPresenter.IsMapNull(story_map, "trigger_action_callerNumber");
+                        }
                     }
                     AudioManager audioManager = (AudioManager)context.getSystemService(Context.AUDIO_SERVICE);
-                    mp = webPresenter.playSound(context,"1",audio_assetId,true,audioManager,5,0,audio_finish_flag);
+                    if (!audio_method.equals("")) {
+                        mp = webPresenter.playSound(context , "1" , audio_assetId , true , audioManager , 5 , 0 , audio_finish_flag);
+                    }
                     switch (story_map.get("trigger_type" + i)) {
                         case "gps":
                             next_sceneId = Integer.parseInt(story_map.get("trigger_action_sceneId" + i));
@@ -279,15 +289,15 @@ public class PlayBookActivity extends AppCompatActivity implements HtmlView {
                         case "notificationClick":
                             Log.d("notificationClick","進入"+story_map.get("trigger_type" + i));
                             String[] notificationClick = {"message","next_sceneId"};//內容   下個場景id
-                            audio_finish_flag[0] = webPresenter.IsMapNull(story_map, "notification_title");
-                            audio_finish_flag[1] = webPresenter.IsMapNull(story_map, "trigger_action_sceneId"+i);
+                            notificationClick[0] = webPresenter.IsMapNull(story_map, "notification_title");
+                            notificationClick[1] = webPresenter.IsMapNull(story_map, "trigger_action_sceneId"+i);
                             webPresenter.dialog_show(notificationClick,diglog,context);
                             break;
                     }
                 }
 
             }
-        }
+//        }
         catch (Exception e){
             Log.d("Exception",e.toString());
         }
@@ -348,7 +358,7 @@ public class PlayBookActivity extends AppCompatActivity implements HtmlView {
     }
 
     @Override
-    public void dialog_show(final String[] notificationClick, AlertDialog.Builder dialog, Context context) {
+    public void dialog_show(final String[] notificationClick, AlertDialog.Builder dialog, final Context context) {
         Log.d("使用dialog_show","使用dialog_show");
         dialog = new AlertDialog.Builder(context);
         dialog.setTitle("提示訊息！");
@@ -356,7 +366,7 @@ public class PlayBookActivity extends AppCompatActivity implements HtmlView {
         dialog.setPositiveButton("確定", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog , int which) {
-                WebInterface.loadHtmlUrl(book_id,notificationClick[1]);
+                new WebInterface(context,webPresenter).loadHtmlUrl(book_id,notificationClick[1]);
             }
         });
         dialog.show();

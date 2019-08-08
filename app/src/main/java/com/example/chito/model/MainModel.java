@@ -317,7 +317,7 @@ public class MainModel {
                 @Override
                 public void run() {
                     mp.stop();
-                    PlayBookActivity.FakeCall(context,audio_finish_flag[1],audio_finish_flag[2],audio_finish_flag[3],audio_finish_flag[4]);
+                    PlayBookActivity.FakeCall(context,audio_finish_flag[1],audio_finish_flag[2],audio_finish_flag[3],audio_finish_flag[4],audio_finish_flag[5],audio_finish_flag[6]);
 //                    if (mp.getCurrentPosition() < audio_duration) {
 //                        audio_finish.postDelayed(this, 100);
 //                    } else if (mp.getCurrentPosition() > 9933) {
@@ -636,9 +636,11 @@ public class MainModel {
                         map.put("trigger_finishPlaybook" + i, new JSONObject(new JSONArray(jsonObject.getString("triggers")).getJSONObject(i).getString("actions")).getString("finishPlaybook"));
                     }
                     if (new JSONObject(new JSONArray(jsonObject.getString("triggers")).getJSONObject(i).getString("actions")).has("fakeCall")) {
-                        map.put("trigger_action_callerName" + i, new JSONObject(new JSONObject(new JSONArray(jsonObject.getString("triggers")).getJSONObject(i).getString("actions")).getString("fakeCall")).getString("callerName"));
-                        map.put("trigger_action_callerNumber" + i, new JSONObject(new JSONObject(new JSONArray(jsonObject.getString("triggers")).getJSONObject(i).getString("actions")).getString("fakeCall")).getString("callerNumber"));
+                        map.put("trigger_action_callerName", new JSONObject(new JSONObject(new JSONArray(jsonObject.getString("triggers")).getJSONObject(i).getString("actions")).getString("fakeCall")).getString("callerName"));
+                        map.put("trigger_action_callerNumber", new JSONObject(new JSONObject(new JSONArray(jsonObject.getString("triggers")).getJSONObject(i).getString("actions")).getString("fakeCall")).getString("callerNumber"));
                         map.put("trigger_action_instanceId" + i, new JSONObject(new JSONObject(new JSONArray(jsonObject.getString("triggers")).getJSONObject(i).getString("actions")).getString("fakeCall")).getString("instanceId"));
+                        map.put("trigger_action_fakecallFinish", new JSONObject(new JSONObject(new JSONArray(jsonObject.getString("triggers")).getJSONObject(1).getString("actions")).getString("gotoScene")).getString("sceneId"));
+                        map.put("trigger_action_fakecallDeclined", new JSONObject(new JSONObject(new JSONArray(jsonObject.getString("triggers")).getJSONObject(1).getString("actions")).getString("gotoScene")).getString("sceneId"));
                         if (new JSONObject(new JSONObject(new JSONObject(new JSONArray(jsonObject.getString("triggers")).getJSONObject(i).getString("actions")).getString("fakeCall")).getString("ring")).has("instanceId")) {
                             map.put("trigger_action_ring_instanceId" + i, new JSONObject(new JSONObject(new JSONObject(new JSONArray(jsonObject.getString("triggers")).getJSONObject(i).getString("actions")).getString("fakeCall")).getString("ring")).getString("instanceId"));
                         }

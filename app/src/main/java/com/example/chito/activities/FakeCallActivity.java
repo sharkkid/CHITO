@@ -52,7 +52,7 @@ public class FakeCallActivity extends AppCompatActivity{
     public TextView ui_name,ui_call_time;
     public int MAX_Playable = 15;
     public int current_play_n = 1;
-    public String ring_id,call_id,name,next_sceneId;
+    public String ring_id,call_id,name,next_sceneId,caller_number,message;
     public String book_id;
     public Vibrator myVibrator;
     public MainModel mainModel;
@@ -85,13 +85,16 @@ public class FakeCallActivity extends AppCompatActivity{
         call_id = intent.getStringExtra("call_id");
         name = intent.getStringExtra("name");
         next_sceneId = intent.getStringExtra("next_sceneId");
-        Log.d("next_sceneId",next_sceneId);
+        caller_number = intent.getStringExtra("caller_number");
+        message = intent.getStringExtra("message");
 
         btn_receive = findViewById(R.id.fakecall_receive);
         btn_reject = findViewById(R.id.fakecall_reject);
         ui_name = findViewById(R.id.call_name);
         ui_name.setText(name);
         ui_call_time = findViewById(R.id.call_time);
+
+        ui_call_time.setText(caller_number);
 
         btn_receive.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -109,10 +112,9 @@ public class FakeCallActivity extends AppCompatActivity{
                             pickup.post(this);
                         }
                         else{
-                            WebInterface.loadHtmlUrl(book_id,next_sceneId);
+                            new WebInterface(FakeCallActivity.this,WebInterface.webPresenter).loadHtmlUrl(book_id,next_sceneId);
                             pickup.removeCallbacksAndMessages(null);
                             mp.stop();
-
                         }
                         try {
                             Thread.sleep(1000);
