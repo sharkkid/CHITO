@@ -1,24 +1,33 @@
 package com.example.chito.Util;
 
+import android.Manifest;
 import android.app.AlertDialog;
 import android.app.Service;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.location.Location;
+import android.location.LocationManager;
 import android.os.Binder;
 import android.os.Build;
 import android.os.IBinder;
+import android.provider.Settings;
 import android.support.annotation.RequiresApi;
+import android.support.v4.app.ActivityCompat;
 import android.util.Log;
 import android.view.WindowManager;
 
 import com.example.chito.model.BleManagement;
+import com.example.chito.model.MainModel;
+import com.example.chito.presenter.MainPresenter;
 
 public class BeaconScannerService extends Service {
     private BluetoothAdapter mBtAdapter;
     private BluetoothAdapter.LeScanCallback mLeScanCallback;
     private BleManagement bleManagement;
+
     public class LocalBinder extends Binder //宣告一個繼承 Binder 的類別 LocalBinder
     {
         public BeaconScannerService getService() {
@@ -41,12 +50,12 @@ public class BeaconScannerService extends Service {
         mLeScanCallback = new BluetoothAdapter.LeScanCallback() {
             @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
             @Override
-            public void onLeScan(final BluetoothDevice device, final int rssi,
+            public void onLeScan(final BluetoothDevice device , final int rssi ,
                                  final byte[] scanRecord) {
-                Log.d("TAG", "BLE device : " + device.getName());
+//                Log.d("TAG" , "BLE device : " + device.getName());
 
                 try {
-                    Beacon beacon = new Beacon(scanRecord, device, rssi);
+                    Beacon beacon = new Beacon(scanRecord , device , rssi);
                     String message = "ibeaconName" +
                             "\nMac：" + beacon.getMacAddress()
                             + " \nUUID：" + beacon.getUuid()
@@ -54,15 +63,63 @@ public class BeaconScannerService extends Service {
                             + "\nMinor：" + beacon.getMinor()
                             + "\nTxPower：" + beacon.getTxPower()
                             + "\nrssi：" + rssi;
-                    Log.d("Beacon", message);
-                    Log.d("distance", "distance：" + beacon.distance());
+                    Log.d("Beacon" , message);
+                    Log.d("distance" , "distance：" + beacon.distance());
                 } catch (BeaconFormateNotFoundException e) {
 
                 }
             }
         };
-        bleManagement = new BleManagement(this,mLeScanCallback);
+        bleManagement = new BleManagement(this , mLeScanCallback);
         bleManagement.scanLeDevice(true);
+
+
+        //取得GPS
+        if (!MainModel.checkGpsStatus(this)) {
+            AlertDialog.Builder dialog = new AlertDialog.Builder(this);
+            dialog.setTitle("GPS定位權限請求!");
+            dialog.setMessage("請允許本程式GPS定位權限!");
+            dialog.setPositiveButton("前往" , new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface arg0 , int arg1) {
+                    // TODO Auto-generated method stub
+//                    Intent enableIntent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS );
+//                    startActivityForResult( enableIntent, MainPresenter.ACCESS_COARSE_LOCATION );
+                }
+            });
+            dialog.setNegativeButton("拒絕" , new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface arg0 , int arg1) {
+                    // TODO Auto-generated method stub
+                }
+            });
+            dialog.show();
+        } else {
+            try {
+                LocationManager locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
+                if (ActivityCompat.checkSelfPermission(this , Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this , Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                    // TODO: Consider calling
+                    //    ActivityCompat#requestPermissions
+                    // here to request the missing permissions, and then overriding
+                    //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+                    //                                          int[] grantResults)
+                    // to handle the case where the user grants the permission. See the documentation
+                    // for ActivityCompat#requestPermissions for more details.
+                    return;
+                }
+                Location location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+                if (location == null) {
+                    location = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+                }
+                Double latitude = location.getLatitude();
+                Double longtitude = location.getLongitude();
+                String TAG = "GPS";
+                Log.d(TAG, "latitude=" + latitude + ",longtitude=" + longtitude);
+            }
+            catch (Exception e){
+
+            }
+        }
 //        showDialog();
     }
 

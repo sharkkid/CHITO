@@ -33,7 +33,6 @@ import com.example.chito.model.BleManagement;
 import com.example.chito.model.MainModel;
 import com.example.chito.presenter.MainPresenter;
 import com.example.chito.view.MainView;
-import com.google.android.gms.location.LocationListener;
 import com.google.gson.Gson;
 
 import org.apache.http.HttpResponse;
@@ -190,43 +189,42 @@ public class MainActivity extends AppCompatActivity implements MainView {
             });
             dialog.show();
         }
-        if(!mainPresenter.checkGpsStatus(MainActivity.this)){
-            AlertDialog.Builder dialog = new AlertDialog.Builder(MainActivity.this);
-            dialog.setTitle("GPS定位權限請求!");
-            dialog.setMessage("請允許本程式GPS定位權限!");
-            dialog.setPositiveButton("前往",new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface arg0, int arg1) {
-                    // TODO Auto-generated method stub
-                    Intent enableIntent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS );
-                    startActivityForResult( enableIntent, mainPresenter.ACCESS_COARSE_LOCATION );
-                }
-            });
-            dialog.setNegativeButton("拒絕",new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface arg0, int arg1) {
-                    // TODO Auto-generated method stub
-                }
-            });
-            dialog.show();
-        }else{
-            try {
-                LocationManager locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
-                Location location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-                if (location == null) {
-                    location = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
-                }
-
-                Double latitude = location.getLatitude();
-                Double longtitude = location.getLongitude();
-                String TAG = "GPS";
-                Log.d(TAG, "latitude=" + latitude + ",longtitude=" + longtitude);
-            }
-            catch (Exception e){
-
-            }
-
-        }
+//        if(!mainPresenter.checkGpsStatus(MainActivity.this)){
+//            AlertDialog.Builder dialog = new AlertDialog.Builder(MainActivity.this);
+//            dialog.setTitle("GPS定位權限請求!");
+//            dialog.setMessage("請允許本程式GPS定位權限!");
+//            dialog.setPositiveButton("前往",new DialogInterface.OnClickListener() {
+//                @Override
+//                public void onClick(DialogInterface arg0, int arg1) {
+//                    // TODO Auto-generated method stub
+//                    Intent enableIntent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS );
+//                    startActivityForResult( enableIntent, mainPresenter.ACCESS_COARSE_LOCATION );
+//                }
+//            });
+//            dialog.setNegativeButton("拒絕",new DialogInterface.OnClickListener() {
+//                @Override
+//                public void onClick(DialogInterface arg0, int arg1) {
+//                    // TODO Auto-generated method stub
+//                }
+//            });
+//            dialog.show();
+//        }else{
+//            try {
+//                LocationManager locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
+//                Location location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+//                if (location == null) {
+//                    location = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+//                }
+//
+//                Double latitude = location.getLatitude();
+//                Double longtitude = location.getLongitude();
+//                String TAG = "GPS";
+//                Log.d(TAG, "latitude=" + latitude + ",longtitude=" + longtitude);
+//            }
+//            catch (Exception e){
+//
+//            }
+//        }
 
 
     }

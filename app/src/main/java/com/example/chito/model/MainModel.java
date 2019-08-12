@@ -30,6 +30,7 @@ import com.example.chito.Util.WebInterface;
 import com.example.chito.activities.FakeCallActivity;
 import com.example.chito.activities.MainActivity;
 import com.example.chito.activities.PlayBookActivity;
+import com.example.chito.presenter.MainPresenter;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
@@ -96,7 +97,7 @@ public class MainModel {
         return flag;
     }
 
-    public boolean checkGpsStatus(Context context) {
+    public static boolean checkGpsStatus(Context context) {
         LocationManager locationManager = (LocationManager) context.getSystemService(LOCATION_SERVICE);
         //詢問是否存取位置資訊
         if (locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER) || locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
@@ -217,46 +218,7 @@ public class MainModel {
         return result;
     }
 
-    @SuppressLint("MissingPermission")
-    public void startGPS(final Context context, float distance, final String book_id, final int next_sceneId) {
-        final Handler gps = new Handler();
-        gps.postDelayed(new Runnable() {
-            public void run() {
-                PlayBookActivity.mp.stop();
-                WebInterface.loadHtmlUrl(book_id, next_sceneId+"");
-            }
-        }, 5000); // 1 second delay (takes millis)
 
-//        final Handler gps = new Handler();
-//        gps.postDelayed(new Runnable() {
-//            @SuppressLint("MissingPermission")
-//            @Override
-//            public void run() {
-//                @SuppressLint("MissingPermission") Location location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-//                if (location == null) {
-//                    location = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
-//                }
-//                Location location1 = new Location("");
-//                location1.setLatitude(25.30996394);
-//                location1.setLongitude(120.37138994);
-//
-//                Double latitude = location.getLatitude();
-//                Double longtitude = location.getLongitude();
-//                String TAG = "GPS";
-//                Toast.makeText(context,"latitude=" + latitude + ",longtitude=" + longtitude,Toast.LENGTH_SHORT).show();
-//                Log.d(TAG, "latitude=" + latitude + ",longtitude=" + longtitude);
-//                if (IsGPSClosed(location1,location,30)) {
-//                    gps.postDelayed(this , 1000);
-//
-//                }
-//                else{
-//
-//                }
-//            }
-//        }, 100); // 1 second delay (takes millis)
-
-
-    }
 
     public MediaPlayer playSound(final Context context, final String book_id, final String fileName, boolean loop, final AudioManager audioManager, final int fadeIn_sec, final int fadeOut_sec, final String[] audio_finish_flag) {
         final MediaPlayer mp = MediaPlayer.create(context, Uri.parse("file:///"+Environment.getExternalStorageDirectory()+"/story_assets/s"+book_id+"/"+fileName+".mp3"));
@@ -408,8 +370,8 @@ public class MainModel {
         Map<String, String> map = new HashMap<>();
 
         try {
-            Log.d("json_all", String.valueOf(jsonObject));
-            Log.d("json_initial", jsonObject.getString("initial"));
+//            Log.d("json_all", String.valueOf(jsonObject));
+//            Log.d("json_initial", jsonObject.getString("initial"));
             map.put("sceneId",jsonObject.getString("id"));
 //            Log.d("json_trigger", new JSONObject(jsonObject.getString("triggers")).getString("type"));
             /*

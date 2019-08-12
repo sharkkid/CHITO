@@ -5,10 +5,8 @@ import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.ActionBar;
 import android.app.AlertDialog;
-import android.app.Dialog;
 import android.app.DownloadManager;
 import android.app.ProgressDialog;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -18,12 +16,14 @@ import android.location.LocationListener;
 import android.location.LocationManager;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
-import android.net.ConnectivityManager;
 import android.net.Uri;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.Handler;
+import android.os.Message;
 import android.provider.Settings;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -34,44 +34,43 @@ import android.webkit.WebResourceResponse;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.chito.R;
 import com.example.chito.Util.CurrentLocation;
-import com.example.chito.Util.GPSListner;
-import com.example.chito.Util.PlayBookPojo;
+import com.example.chito.Util.GlobalValue;
+import com.example.chito.Util.GlobalVariables;
 import com.example.chito.Util.WebInterface;
 import com.example.chito.model.MainModel;
+import com.example.chito.presenter.MainPresenter;
 import com.example.chito.presenter.WebPresenter;
 import com.example.chito.view.HtmlView;
-import com.google.gson.Gson;
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationServices;
 import com.google.gson.JsonSyntaxException;
 
-import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.DefaultHttpClient;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.FileReader;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import static android.provider.Settings.ACTION_MANAGE_OVERLAY_PERMISSION;
 
 
-public class PlayBookActivity extends AppCompatActivity implements HtmlView {
+public class PlayBookActivity extends AppCompatActivity implements HtmlView,com.google.android.gms.location.LocationListener, GoogleApiClient.ConnectionCallbacks,
+        GoogleApiClient.OnConnectionFailedListener  {
     public static WebPresenter webPresenter;
     public static WebView webView;
 
@@ -101,7 +100,10 @@ public class PlayBookActivity extends AppCompatActivity implements HtmlView {
     public static boolean booklist_isDonwloaded = false;
 
     //GPS
-    CurrentLocation currentLocation;
+    GoogleApiClient mGoogleApiClient;
+    LocationRequest mLocationRequest;
+    TextView textAutoUpdateLocation;
+    static final int MY_PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1;
 
     //訊息顯示
     public static AlertDialog.Builder diglog;
@@ -110,6 +112,7 @@ public class PlayBookActivity extends AppCompatActivity implements HtmlView {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         init();
+
     }
 
     @SuppressLint("MissingPermission")
@@ -126,7 +129,7 @@ public class PlayBookActivity extends AppCompatActivity implements HtmlView {
         // 通过addJavascriptInterface()将Java对象映射到JS对象
         //参数1：Javascript对象名
         //参数2：Java对象名
-        webView.addJavascriptInterface(new WebInterface(PlayBookActivity.this , webPresenter) , "test");//AndroidtoJS类对象映射到js的test对象
+        webView.addJavascriptInterface(new WebInterface(PlayBookActivity.this , webPresenter) , "Chito");//AndroidtoJS类对象映射到js的test对象
 
 
         Intent intent = this.getIntent();
@@ -151,16 +154,65 @@ public class PlayBookActivity extends AppCompatActivity implements HtmlView {
             exception.printStackTrace();
         }
         //取得GPS
-        if (!webPresenter.checkGpsStatus(PlayBookActivity.this)) {
-            currentLocation = new CurrentLocation(this);
-            LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,
-                    1,
-                    1, new CurrentLocation(this));
+        if(!webPresenter.checkGpsStatus(this)){
+            AlertDialog.Builder dialog = new AlertDialog.Builder(this);
+            dialog.setTitle("GPS定位權限請求!");
+            dialog.setMessage("請允許本程式GPS定位權限!");
+            dialog.setPositiveButton("前往",new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface arg0, int arg1) {
+                    // TODO Auto-generated method stub
+                    Intent enableIntent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS );
+                    startActivityForResult( enableIntent, MainPresenter.ACCESS_COARSE_LOCATION );
+                }
+            });
+            dialog.setNegativeButton("拒絕",new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface arg0, int arg1) {
+                    // TODO Auto-generated method stub
+                }
+            });
+            dialog.show();
+        }else{
+            mLocationRequest = new LocationRequest();
+            mLocationRequest.setInterval(1000);
+            mLocationRequest.setFastestInterval(1000);
+            mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+            mGoogleApiClient = new GoogleApiClient.Builder(this)
+                    .addConnectionCallbacks(this)
+                    .addOnConnectionFailedListener(this)
+                    .addApi(LocationServices.API)
+                    .build();
         }
 
         startPlayBook(this,scenes_list.get(0),scenes_list);
     }
+
+    private void updateLocation(Location location) {
+        if (location != null) {
+            GlobalValue.Latitude = location.getLatitude();
+            GlobalValue.Longtitude  = location.getLongitude();
+        } else {
+            GlobalValue.Latitude = location.getLatitude();
+            GlobalValue.Longtitude  = location.getLongitude();
+        }
+    }
+    private final LocationListener locationListener = new LocationListener() {
+        public void onLocationChanged(Location location) {
+            updateLocation(location);
+
+        }
+        public void onProviderDisabled(String provider){
+            updateLocation(null);
+        }
+        public void onProviderEnabled(String provider){
+
+        }
+        public void onStatusChanged(String provider, int status,Bundle extras){
+
+        }
+    };
+
 
     public static void loadHtmlUrl(final String book_id , final String html_id , final String next_sceneId , final String flag) {
         webView.loadUrl("file://"+Environment.getExternalStorageDirectory()+"/story_assets/s"+book_id+"/"+html_id+".html");
@@ -181,7 +233,7 @@ public class PlayBookActivity extends AppCompatActivity implements HtmlView {
                             "            }" +
                             "var oDiv = document.getElementById(\"go-next\");\n" +
                             "oDiv.addEventListener(\"click\", function(){\n" +
-                            "    test.loadHtmlUrl(\"" + book_id + "\",\"" + next_sceneId + "\");" +
+                            "    Chito.loadHtmlUrl(\"" + book_id + "\",\"" + next_sceneId + "\");" +
                             "});");
                     break;
             }
@@ -377,5 +429,91 @@ public class PlayBookActivity extends AppCompatActivity implements HtmlView {
         dialog.dismiss();
     }
 
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
+        switch (requestCode) {
+            case MY_PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION: {
+                // If request is cancelled, the result arrays are empty.
+                if (grantResults.length > 0
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    Toast.makeText(this,
+                            "permission was granted, :)",
+                            Toast.LENGTH_LONG).show();
 
+                    try{
+                        LocationServices.FusedLocationApi.requestLocationUpdates(
+                                mGoogleApiClient, mLocationRequest,this);
+                    }catch(SecurityException e){
+                        Toast.makeText(this,
+                                "SecurityException:\n" + e.toString(),
+                                Toast.LENGTH_LONG).show();
+                    }
+                } else {
+                    Toast.makeText(this,
+                            "使用者拒絕了gps權限，將無法體驗本程式！",
+                            Toast.LENGTH_LONG).show();
+                }
+                return;
+            }
+        }
+    }
+
+    @Override
+    protected void onStart() {
+        mGoogleApiClient.connect();
+        super.onStart();
+    }
+
+    @Override
+    protected void onStop() {
+        mGoogleApiClient.disconnect();
+        super.onStop();
+    }
+
+    @Override
+    public void onLocationChanged(Location location) {
+        if(location != null) {
+            GlobalValue.Latitude = location.getLatitude();
+            GlobalValue.Longtitude = location.getLongitude();
+            Log.d("更新GPS!" , "Latitude=" + GlobalValue.Latitude + ",Longtitude=" + GlobalValue.Longtitude);
+        }
+        else{
+            Log.d("更新GPS!" , "Location is null!");
+        }
+    }
+
+    @Override
+    public void onConnected(@Nullable Bundle bundle) {
+        if (ActivityCompat.checkSelfPermission(this,
+                Manifest.permission.ACCESS_FINE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED
+                && ActivityCompat.checkSelfPermission(this,
+                Manifest.permission.ACCESS_COARSE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
+                    MY_PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION);
+
+            return;
+        }
+        LocationServices.FusedLocationApi.requestLocationUpdates(
+                mGoogleApiClient, mLocationRequest,this);
+    }
+
+    @Override
+    public void onConnectionSuspended(int i) {
+
+    }
+
+    @Override
+    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
+
+    }
 }
