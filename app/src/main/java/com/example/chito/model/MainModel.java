@@ -673,25 +673,7 @@ public class MainModel {
         return map;
     }
 
+    public void startGPS(Context context , float distance , String book_id , int next_sceneId) {
 
-//    public String[] TriggerParser(JSONObject jsonObject) {
-//        String[] result = new String[2];
-//        try {
-//            String webviewClick = new JSONObject(new JSONObject(jsonObject.getString("triggers")).getString("webviewClick")).getString("webviewClick");
-//            switch (type){
-//                case "webview":
-//                    String assetId = new JSONObject(new JSONObject(jsonObject.getString("initial")).getString("display")).getString("assetId");
-//                    result[0] = type;
-//                    result[1] = assetId;
-//                    break;
-//                case "ar":
-//
-//                    break;
-//            }
-//
-//        } catch (JSONException e) {
-//            e.printStackTrace();
-//        }
-//        return result;
-//    }
+    }
 }

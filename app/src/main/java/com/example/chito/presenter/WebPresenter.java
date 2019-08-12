@@ -106,7 +106,7 @@ public class WebPresenter {
     }
 
     public void startGPS(final Context context, float distance, String book_id, int next_sceneId) {
-//        mainModel.startGPS(context,distance, book_id, next_sceneId);
+        mainModel.startGPS(context,distance, book_id, next_sceneId);
     }
 
     public void dialog_show(String[] notificationClick, AlertDialog.Builder dialog, Context context){
