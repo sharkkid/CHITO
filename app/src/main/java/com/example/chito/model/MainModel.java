@@ -26,6 +26,7 @@ import android.util.Log;
 import android.widget.Toast;
 
 import com.example.chito.Util.GPSListner;
+import com.example.chito.Util.GlobalValue;
 import com.example.chito.Util.WebInterface;
 import com.example.chito.activities.FakeCallActivity;
 import com.example.chito.activities.MainActivity;
@@ -44,6 +45,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -51,6 +53,7 @@ import java.util.Map;
 
 import static android.content.Context.LOCATION_SERVICE;
 import static android.support.v4.app.ActivityCompat.startActivityForResult;
+import static com.example.chito.Util.GlobalValue.IsGpsStart;
 
 public class MainModel {
 
@@ -218,7 +221,22 @@ public class MainModel {
         return result;
     }
 
+    public void playSound(final Context context, String book_id, String fileName, final AudioManager audioManager, int timer_max){
+        final MediaPlayer mp = MediaPlayer.create(context, Uri.parse("file:///"+Environment.getExternalStorageDirectory()+"/story_assets/s"+book_id+"/"+fileName+".mp3"));
+        Log.d("Audio_path",Uri.parse("file:///"+Environment.getExternalStorageDirectory()+"/story_assets/s"+book_id+"/"+fileName+".mp3")+"");
+        if(mp != null) {
+            mp.start();
+            final Handler audio_finish = new Handler();
+            audio_finish.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    mp.stop();
 
+//                    }
+                }
+            }, 5000); // 1 second delay (takes millis)
+        }
+    }
 
     public MediaPlayer playSound(final Context context, final String book_id, final String fileName, boolean loop, final AudioManager audioManager, final int fadeIn_sec, final int fadeOut_sec, final String[] audio_finish_flag) {
         final MediaPlayer mp = MediaPlayer.create(context, Uri.parse("file:///"+Environment.getExternalStorageDirectory()+"/story_assets/s"+book_id+"/"+fileName+".mp3"));
@@ -237,10 +255,10 @@ public class MainModel {
                 float speed = 0.05f;
                 volume[0] = FadeIn(mp,fadeIn_sec, (float) volume[0] ,speed);
                 Log.d("FadeInvolume", volume[0] +"");
-                Log.d("timer",PlayBookActivity.timer+"");
-                if (PlayBookActivity.timer < 5) {
+                Log.d("timer",PlayBookActivity.audio_timer+"");
+                if (PlayBookActivity.audio_timer < 5) {
                     fadeIn.postDelayed(this , 1000);
-                    PlayBookActivity.timer++;
+                    PlayBookActivity.audio_timer++;
                 }
                 else{
                     fadeIn.removeCallbacksAndMessages(null);
@@ -257,7 +275,7 @@ public class MainModel {
 //                Log.d("CurrentPosition",mp.getCurrentPosition()+"");
                 if ( mp.getCurrentPosition() > (audio_duration - fadeOut_sec)) {
                     volume[0] = FadeOut(mp,fadeIn_sec, (float) volume[0] ,speed);
-                    PlayBookActivity.timer++;
+                    PlayBookActivity.audio_timer++;
                 }
                 else if( mp.getCurrentPosition() < (audio_duration - (fadeOut_sec*1000))){
                     fadeOut.postDelayed(this , 1000);
@@ -266,6 +284,7 @@ public class MainModel {
                     fadeOut.removeCallbacksAndMessages(null);
                     fadeOut.removeCallbacks(this);
                     mp.stop();
+                    mp.release();
                 }
             }
         }, 1000); // 1 second delay (takes millis)
@@ -273,7 +292,6 @@ public class MainModel {
         //20190731 audio_finish
         if(audio_finish_flag[0].equals("1")) {
             Log.d("audio_finish_flag","Yes");
-
             final Handler audio_finish = new Handler();
             audio_finish.postDelayed(new Runnable() {
                 @Override
@@ -352,8 +370,15 @@ public class MainModel {
     }
 
     //計算兩點GPS的距離
-    public boolean IsGPSClosed(Location dis, Location curr,float distance){
-        float distanceInMeters = curr.distanceTo(dis);
+    public boolean IsGPSClosed(Location dis, Location cur,double distance){
+        if(dis == null)
+            Log.d("gps_dis","null");
+        else
+            Log.d("gps_dis","not null");
+        double distanceInMeters = cur.distanceTo(dis);
+        Log.d("gps_dis",String.valueOf(dis));
+        Log.d("gps_cur",String.valueOf(cur));
+        Log.d("gps_distanceInMeters","距離:"+distanceInMeters+"");
         if(distanceInMeters < distance){
             return true;
         }
@@ -361,6 +386,24 @@ public class MainModel {
             return false;
         }
     }
+
+//    //計算兩點GPS的距離
+//    public boolean IsGPSClosed(Location dis, Location cur,double distance){
+//        if(dis == null)
+//            Log.d("gps_dis","null");
+//        else
+//            Log.d("gps_dis","not null");
+//        double distanceInMeters = cur.distanceTo(dis);
+//        Log.d("gps_dis",String.valueOf(dis));
+//        Log.d("gps_cur",String.valueOf(cur));
+//        Log.d("gps_distanceInMeters","距離:"+distanceInMeters+"");
+//        if(distanceInMeters < distance){
+//            return true;
+//        }
+//        else{
+//            return false;
+//        }
+//    }
 
     /*
     * 以下為劇本JSON處理
@@ -536,6 +579,7 @@ public class MainModel {
             for(int i=0;i<n;i++) {
                 if (new JSONArray(jsonObject.getString("triggers")).getJSONObject(i).has("type")) {
                     map.put("trigger_type"+i, new JSONArray(jsonObject.getString("triggers")).getJSONObject(i).getString("type"));
+
                 }
                 if (new JSONArray(jsonObject.getString("triggers")).getJSONObject(i).has("id")) {
                     map.put("trigger_id"+i, new JSONArray(jsonObject.getString("triggers")).getJSONObject(i).getString("id"));
@@ -585,7 +629,8 @@ public class MainModel {
                     }
                     if(new JSONObject(new JSONArray(jsonObject.getString("triggers")).getJSONObject(i).getString("actions")).has("audio")) {
                         map.put("trigger_audio_method" + i, new JSONObject(new JSONObject(new JSONArray(jsonObject.getString("triggers")).getJSONObject(i).getString("actions")).getString("audio")).getString("method"));
-
+                        map.put("trigger_audio_assetsId" + i, new JSONArray(new JSONObject(new JSONObject(new JSONArray(jsonObject.getString("triggers")).getJSONObject(i).getString("actions")).getString("audio")).getString("tracks")).getJSONObject(0).getString("assetId"));
+//                        map.put("trigger_audio_assetsId" + i, new JSONObject(new JSONObject(new JSONArray(jsonObject.getString("triggers")).getJSONObject(i).getString("actions")).getString("tracks")).getString("assetId"));
                     }
                     if(new JSONObject(new JSONArray(jsonObject.getString("triggers")).getJSONObject(i).getString("actions")).has("changePlaybookThumbnail")) {
                         map.put("trigger_audio_disablePlaybook_assetId" + i,new JSONObject(new JSONObject(new JSONArray(jsonObject.getString("triggers")).getJSONObject(i).getString("actions")).getString("changePlaybookThumbnail")).getString("assetId"));
@@ -673,7 +718,45 @@ public class MainModel {
         return map;
     }
 
-    public void startGPS(Context context , float distance , String book_id , int next_sceneId) {
+    public void startGPS(Context context , final float distance , final String book_id , final int next_sceneId, Map<String,String> gps_map) {
+        double gps_latitude = 0;
+        double gps_longitude = 0;
+        final Location dis = new Location("dis");
+        if(!IsMapNull(gps_map,"gps_latitude").equals("")){
+            Log.d("gps_latitude","gps_latitude!"+IsMapNull(gps_map,"gps_latitude"));
+            gps_latitude = Double.parseDouble(IsMapNull(gps_map,"gps_latitude"));
+            dis.setLatitude(gps_latitude);
+        }
+        if(!IsMapNull(gps_map,"gps_longitude").equals("")){
+            Log.d("gps_longitude","gps_longitude!"+IsMapNull(gps_map,"gps_longitude"));
+            gps_longitude = Double.parseDouble(IsMapNull(gps_map,"gps_longitude"));
+            dis.setLongitude(gps_longitude);
+        }
+        Log.d("gps_IsGpsStart",IsGpsStart+"");
+        final Handler gps_sesor = new Handler();
+        gps_sesor.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    if(IsGpsStart){
+                        if(GlobalValue.Latitude != 0 && GlobalValue.Longtitude !=0){
+                            Location cur = new Location("cur");
+                            cur.setLatitude(GlobalValue.Latitude);
+                            cur.setLongitude(GlobalValue.Longtitude);
+                            if(IsGPSClosed(dis,cur,distance)){
+                                PlayBookActivity.mp.stop();
+                                IsGpsStart = false;
+                                WebInterface.loadHtmlUrl(book_id,next_sceneId+"");
+                            }
+                            else{
+                                gps_sesor.postDelayed(this,1000);
+                            }
+                        }
+                    }
+                    else{
 
+                    }
+
+                }
+            }, 2000); // 1 second delay (takes millis)
     }
 }

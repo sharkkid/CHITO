@@ -27,6 +27,7 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.util.ArrayMap;
 import android.util.Log;
 import android.view.View;
 import android.webkit.MimeTypeMap;
@@ -67,6 +68,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 import static android.provider.Settings.ACTION_MANAGE_OVERLAY_PERMISSION;
+import static com.example.chito.Util.GlobalValue.IsGpsStart;
 
 
 public class PlayBookActivity extends AppCompatActivity implements HtmlView,com.google.android.gms.location.LocationListener, GoogleApiClient.ConnectionCallbacks,
@@ -90,10 +92,11 @@ public class PlayBookActivity extends AppCompatActivity implements HtmlView,com.
     public boolean IsBLE = false;
     public boolean IsWIFI = false;
 
-    public static int timer = 0;
+    public static int audio_timer = 0;
 
     //音樂播放
     public static MediaPlayer mp;
+    AudioManager audioManager;
 
     //進度條
     private static ProgressDialog progressDialog;
@@ -184,7 +187,7 @@ public class PlayBookActivity extends AppCompatActivity implements HtmlView,com.
                     .addApi(LocationServices.API)
                     .build();
         }
-
+        audioManager = (AudioManager)this.getSystemService(Context.AUDIO_SERVICE);
         startPlayBook(this,scenes_list.get(0),scenes_list);
     }
 
@@ -281,14 +284,22 @@ public class PlayBookActivity extends AppCompatActivity implements HtmlView,com.
     }
 
     //劇本流程通用執行邏輯
-    public void startPlayBook(Context context,Map<String, String> story_map, List<Map<String, String>> all_map){
+    public void startPlayBook(final Context context, Map<String, String> story_map, List<Map<String, String>> all_map){
         try {
-            int trigger_total = Integer.parseInt(story_map.get("triggers_total"));
+            final int trigger_total = Integer.parseInt(story_map.get("triggers_total"));
             current_sceneId = Integer.parseInt(story_map.get("sceneId"));
             String display_type = webPresenter.IsMapNull(story_map, "display_type");
             String audio_method = webPresenter.IsMapNull(story_map, "audio_method");
+            Map<String,String> gps_map = new ArrayMap<>();
             String current_html = "";
+            final int[] timer = new int[trigger_total];
+            final String[] audio_assets = new String[trigger_total];
+            int[] fadeIn = new int[trigger_total];
+            int[] fadeOut = new int[trigger_total];
+            boolean IsTimerStart = false;
+            int timer_max = 0;
             Log.d("current_sceneId",current_sceneId+"");
+
             //initial
             if (!display_type.equals("")) {
                 switch (display_type) {
@@ -302,9 +313,54 @@ public class PlayBookActivity extends AppCompatActivity implements HtmlView,com.
                                     next_sceneId = Integer.parseInt(story_map.get("trigger_action_sceneId" + i));
                                     loadHtmlUrl(book_id, current_html, next_sceneId + "", "0");
                                     break;
+                                case "timer":
+                                    audio_timer = 0;
+                                    IsTimerStart = true;
+                                    if(!webPresenter.IsMapNull(story_map, "fadeInSeconds"+i).equals(""))
+                                        fadeIn[i] = Integer.parseInt(webPresenter.IsMapNull(story_map, "fadeInSeconds"+i));
+                                    else
+                                        timer[i] = 0;
+                                    if(!webPresenter.IsMapNull(story_map, "fadeOutSeconds"+i).equals(""))
+                                        fadeOut[i] = Integer.parseInt(webPresenter.IsMapNull(story_map, "fadeOutSeconds"+i));
+                                    else
+                                        timer[i] = 0;
+                                    if(!webPresenter.IsMapNull(story_map, "trigger_timer_seconds"+i).equals("")){
+                                        if(!webPresenter.IsMapNull(story_map, "trigger_timer_seconds"+i).equals("")) {
+                                            timer[i] = Integer.parseInt(webPresenter.IsMapNull(story_map , "trigger_timer_seconds" + i));
+                                            audio_assets[i] = webPresenter.IsMapNull(story_map , "trigger_audio_assetsId" + i);
+                                            if(timer[i] > timer_max){
+                                                timer_max = timer[i];
+                                            }
+                                        }
+                                        else
+                                            timer[i] = 0;
+                                    }
+                                    break;
                             }
                         }
-                        break;
+                        if(IsTimerStart) {
+                            final Handler audio_timer_handler = new Handler();
+                            final int finalTimer_max = timer_max;
+                            audio_timer_handler.post(new Runnable() {
+                                @Override
+                                public void run() {
+                                    audioManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
+                                    Log.d("audio_timer" , audio_timer + "");
+                                    for (int x = trigger_total - 1; x > 0; x--) {
+                                        if (timer[x] != 0 && audio_timer == timer[x]) {
+                                            webPresenter.playSound(context,book_id,audio_assets[x],audioManager, finalTimer_max);
+                                            if(timer[x] == finalTimer_max){
+                                                audio_timer_handler.removeCallbacksAndMessages(this);
+                                            }
+                                            break;
+                                        }
+
+                                    }
+                                    audio_timer_handler.postDelayed(this , 1000);
+                                    audio_timer++;
+                                }
+                            }); // 1 second delay (takes millis)
+                        }
                     case "ar":
 
                         break;
@@ -327,16 +383,23 @@ public class PlayBookActivity extends AppCompatActivity implements HtmlView,com.
                             audio_finish_flag[6] = webPresenter.IsMapNull(story_map, "trigger_action_callerNumber");
                         }
                     }
-                    AudioManager audioManager = (AudioManager)context.getSystemService(Context.AUDIO_SERVICE);
+
                     if (!audio_method.equals("")) {
                         mp = webPresenter.playSound(context , "1" , audio_assetId , true , audioManager , 5 , 0 , audio_finish_flag);
                     }
                     switch (story_map.get("trigger_type" + i)) {
                         case "gps":
                             next_sceneId = Integer.parseInt(story_map.get("trigger_action_sceneId" + i));
-                            Log.d("next_sceneId",next_sceneId+"");
-                            webPresenter.startGPS(this,30,book_id,next_sceneId);
-//                            WebInterface.loadHtmlUrl(book_id, next_sceneId+"");
+                            IsGpsStart = true;
+                            Log.d("gps_PlayBook",IsGpsStart+"");
+                            gps_map.put("gps_latitude",webPresenter.IsMapNull(story_map , "trigger_latitude"+i));
+                            gps_map.put("gps_longitude",webPresenter.IsMapNull(story_map , "trigger_longitude"+i));
+                            gps_map.put("gps_distance",webPresenter.IsMapNull(story_map , "trigger_distance"+i));
+                            gps_map.put("gps_operator",webPresenter.IsMapNull(story_map , "trigger_operator"+i));
+                            gps_map.put("gps_operator",webPresenter.IsMapNull(story_map , "trigger_operator"+i));
+                            gps_map.put("gps_action",webPresenter.IsMapNull(story_map , "action"));
+                            int distance = Integer.parseInt(webPresenter.IsMapNull(story_map , "trigger_distance"+i));
+                            webPresenter.startGPS(this,distance,book_id,next_sceneId,gps_map);
                             break;
                         case "notificationClick":
                             Log.d("notificationClick","進入"+story_map.get("trigger_type" + i));
@@ -353,6 +416,12 @@ public class PlayBookActivity extends AppCompatActivity implements HtmlView,com.
         catch (Exception e){
             Log.d("Exception",e.toString());
         }
+    }
+
+    @Override
+    public void onBackPressed() {
+//        super.onBackPressed();
+
     }
 
     @Override
@@ -460,22 +529,32 @@ public class PlayBookActivity extends AppCompatActivity implements HtmlView,com.
 
     @Override
     protected void onStart() {
-        mGoogleApiClient.connect();
+        if(mGoogleApiClient != null) {
+            mGoogleApiClient.connect();
+        }
         super.onStart();
     }
 
     @Override
     protected void onStop() {
-        mGoogleApiClient.disconnect();
+        if(mGoogleApiClient != null) {
+            mGoogleApiClient.disconnect();
+        }
         super.onStop();
     }
 
     @Override
     public void onLocationChanged(Location location) {
         if(location != null) {
-            GlobalValue.Latitude = location.getLatitude();
-            GlobalValue.Longtitude = location.getLongitude();
-            Log.d("更新GPS!" , "Latitude=" + GlobalValue.Latitude + ",Longtitude=" + GlobalValue.Longtitude);
+            if(IsGpsStart) {
+                GlobalValue.Latitude = location.getLatitude();
+                GlobalValue.Longtitude = location.getLongitude();
+                Log.d("更新GPS!" , "Latitude=" + GlobalValue.Latitude + ",Longtitude=" + GlobalValue.Longtitude);
+            }
+            else{
+                GlobalValue.Longtitude = 0;
+                GlobalValue.Latitude = 0;
+            }
         }
         else{
             Log.d("更新GPS!" , "Location is null!");
@@ -503,8 +582,9 @@ public class PlayBookActivity extends AppCompatActivity implements HtmlView,com.
 
             return;
         }
-        LocationServices.FusedLocationApi.requestLocationUpdates(
-                mGoogleApiClient, mLocationRequest,this);
+
+            LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient , mLocationRequest , this);
+
     }
 
     @Override

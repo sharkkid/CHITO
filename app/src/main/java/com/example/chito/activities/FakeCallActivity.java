@@ -109,22 +109,16 @@ public class FakeCallActivity extends AppCompatActivity{
                         time++;
 //                        Log.d("播放時間","current="+mp.getCurrentPosition()+",whole="+mp.getDuration());
                         if(mp.getCurrentPosition() < (mp.getDuration()-50300)){
-                            pickup.post(this);
+                            pickup.postDelayed(this,1000);
                         }
                         else{
                             new WebInterface(FakeCallActivity.this,WebInterface.webPresenter).loadHtmlUrl(book_id,next_sceneId);
                             pickup.removeCallbacksAndMessages(null);
                             mp.stop();
-                        }
-                        try {
-                            Thread.sleep(1000);
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
+                            mp.release();
                         }
                     }
                 });
-
-
                 btn_receive.setVisibility(View.GONE);
                 btn_reject.setVisibility(View.GONE);
             }
@@ -156,8 +150,6 @@ public class FakeCallActivity extends AppCompatActivity{
         else{
             current_play_n++;
         }
-
-        Log.d("sec",mp.getDuration()+"");
         mp.start();
     }
 
