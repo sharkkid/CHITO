@@ -56,6 +56,7 @@ import static android.support.v4.app.ActivityCompat.startActivityForResult;
 import static com.example.chito.Util.GlobalValue.IsBleStart;
 import static com.example.chito.Util.GlobalValue.IsGpsStart;
 import static com.example.chito.activities.PlayBookActivity.audio_timer_handler;
+import static com.example.chito.activities.PlayBookActivity.webPresenter;
 
 public class MainModel {
 
@@ -241,76 +242,97 @@ public class MainModel {
     }
 
     public MediaPlayer playSound(final Context context, final String book_id, final String fileName, boolean loop, final AudioManager audioManager, final int fadeIn_sec, final int fadeOut_sec, final String[] audio_finish_flag) {
-        final MediaPlayer mp = MediaPlayer.create(context, Uri.parse("file:///"+Environment.getExternalStorageDirectory()+"/story_assets/s"+book_id+"/"+fileName+".mp3"));
-        final int audio_duration = mp.getDuration();
-        final double[] volume = {1};
         Log.d("Audio_path",Uri.parse("file:///"+Environment.getExternalStorageDirectory()+"/story_assets/s"+book_id+"/"+fileName+".mp3")+"");
-        Log.d("audio_duration",audio_duration+"");
+        MediaPlayer mp=null;
+        if(!fileName.equals("")) {
+            mp = MediaPlayer.create(context, Uri.parse("file:///" + Environment.getExternalStorageDirectory() + "/story_assets/s" + book_id + "/" + fileName + ".mp3"));
+            final int audio_duration = mp.getDuration();
+            final double[] volume = {1};
+
+            Log.d("audio_duration", audio_duration + "");
 //        fadeOut(mp,fadeOut_sec,audioManager);
-        mp.setLooping(true);
-        mp.start();
-        //20190731
-        final Handler fadeIn = new Handler();
-        fadeIn.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                float speed = 0.05f;
-                volume[0] = FadeIn(mp,fadeIn_sec, (float) volume[0] ,speed);
-                Log.d("FadeInvolume", volume[0] +"");
-                Log.d("timer",PlayBookActivity.audio_timer+"");
-                if (PlayBookActivity.audio_timer < 5) {
-                    fadeIn.postDelayed(this , 1000);
-                    PlayBookActivity.audio_timer++;
-                }
-                else{
-                    fadeIn.removeCallbacksAndMessages(null);
-                }
-            }
-        }, 1000); // 1 second delay (takes millis)
-
-        //20190731 fadeOut
-        final Handler fadeOut = new Handler();
-        fadeOut.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                float speed = 0.05f;
-//                Log.d("CurrentPosition",mp.getCurrentPosition()+"");
-                if ( mp.getCurrentPosition() > (audio_duration - fadeOut_sec)) {
-                    volume[0] = FadeOut(mp,fadeIn_sec, (float) volume[0] ,speed);
-                    PlayBookActivity.audio_timer++;
-                }
-                else if( mp.getCurrentPosition() < (audio_duration - (fadeOut_sec*1000))){
-                    fadeOut.postDelayed(this , 1000);
-                }
-                else if( mp.getCurrentPosition() > (audio_duration-500)){
-                    fadeOut.removeCallbacksAndMessages(null);
-                    fadeOut.removeCallbacks(this);
-                    mp.stop();
-                    mp.release();
-                }
-            }
-        }, 1000); // 1 second delay (takes millis)
-
-        //20190731 audio_finish
-        if(audio_finish_flag[0].equals("1")) {
-            Log.d("audio_finish_flag","Yes");
-            final Handler audio_finish = new Handler();
-            audio_finish.postDelayed(new Runnable() {
+            mp.setLooping(loop);
+            mp.start();
+            //20190731
+            final Handler fadeIn = new Handler();
+            final MediaPlayer finalMp2 = mp;
+            fadeIn.postDelayed(new Runnable() {
                 @Override
                 public void run() {
-                    mp.stop();
-                    PlayBookActivity.FakeCall(context,audio_finish_flag[1],audio_finish_flag[2],audio_finish_flag[3],audio_finish_flag[4],audio_finish_flag[5],audio_finish_flag[6]);
-//                    if (mp.getCurrentPosition() < audio_duration) {
-//                        audio_finish.postDelayed(this, 100);
-//                    } else if (mp.getCurrentPosition() > 9933) {
-//                        fadeOut.removeCallbacksAndMessages(null);
-//                        mp.stop();
-//                        new PlayBookActivity().FakeCall(context,audio_finish_flag[1],audio_finish_flag[2]);
-//                    }
+                    float speed = 0.05f;
+                    volume[0] = FadeIn(finalMp2, fadeIn_sec, (float) volume[0], speed);
+                    Log.d("FadeInvolume", volume[0] + "");
+                    Log.d("timer", PlayBookActivity.audio_timer + "");
+                    if (PlayBookActivity.audio_timer < 5) {
+                        fadeIn.postDelayed(this, 1000);
+                        PlayBookActivity.audio_timer++;
+                    } else {
+                        fadeIn.removeCallbacksAndMessages(null);
+                    }
                 }
-            }, 5000); // 1 second delay (takes millis)
-        }
+            }, 1000); // 1 second delay (takes millis)
 
+            //20190731 fadeOut
+            final Handler fadeOut = new Handler();
+            final MediaPlayer finalMp1 = mp;
+            fadeOut.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    float speed = 0.05f;
+//                Log.d("CurrentPosition",mp.getCurrentPosition()+"");
+                    if (finalMp1.getCurrentPosition() > (audio_duration - fadeOut_sec)) {
+                        volume[0] = FadeOut(finalMp1, fadeIn_sec, (float) volume[0], speed);
+                        PlayBookActivity.audio_timer++;
+                    } else if (finalMp1.getCurrentPosition() < (audio_duration - (fadeOut_sec * 1000))) {
+                        fadeOut.postDelayed(this, 1000);
+                    } else if (finalMp1.getCurrentPosition() > (audio_duration - 500)) {
+                        fadeOut.removeCallbacksAndMessages(null);
+                        fadeOut.removeCallbacks(this);
+                        finalMp1.stop();
+                        finalMp1.release();
+                    }
+                }
+            }, 1000); // 1 second delay (takes millis)
+
+            //20190731 audio_finish
+            if (audio_finish_flag[0].equals("1")) {
+                Log.d("audio_finish_flag", "Yes");
+                final Handler audio_finish = new Handler();
+                final MediaPlayer finalMp = mp;
+                audio_finish.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        Log.d("CurrentPosition", finalMp.getCurrentPosition() + "s,Duration="+finalMp.getDuration());
+                        if (finalMp.getCurrentPosition() < audio_duration - 1000) {
+                            audio_finish.postDelayed(this, 1000);
+                        } else {
+                            Log.d("CurrentPosition", "超過!");
+                            fadeOut.removeCallbacksAndMessages(null);
+                            finalMp.stop();
+                            PlayBookActivity.FakeCall(context, audio_finish_flag[1], audio_finish_flag[2], audio_finish_flag[3], audio_finish_flag[7], audio_finish_flag[5], audio_finish_flag[6]);
+                        }
+                    }
+                }, 500); // 1 second delay (takes millis)
+            } else if (audio_finish_flag[0].equals("2")) {
+                final Handler audio_finish = new Handler();
+                final MediaPlayer finalMp3 = mp;
+                audio_finish.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        Log.d("CurrentPosition", finalMp3.getCurrentPosition() + "s");
+                        if (finalMp3.getCurrentPosition() < audio_duration - 1000) {
+                            audio_finish.postDelayed(this, 1000);
+                        } else {
+                            Log.d("CurrentPosition", "超過!");
+                            fadeOut.removeCallbacksAndMessages(null);
+                            finalMp3.stop();
+                            new WebInterface(context,webPresenter).loadHtmlUrl(book_id,audio_finish_flag[4]);
+
+                        }
+                    }
+                }, 500); // 1 second delay (takes millis)
+            }
+        }
         return mp;
     }
     public float FadeOut(MediaPlayer mp,float deltaTime, float volume, float speed)
@@ -614,6 +636,9 @@ public class MainModel {
                     }
                     if (new JSONObject(new JSONArray(jsonObject.getString("triggers")).getJSONObject(i).getString("actions")).has("flag")) {
                         map.put("trigger_flag_names" + i, new JSONArray(new JSONObject(new JSONObject(new JSONArray(jsonObject.getString("triggers")).getJSONObject(i).getString("actions")).getString("flag")).getString("names")).get(0).toString());
+                    }
+                    if (new JSONObject(new JSONArray(jsonObject.getString("triggers")).getJSONObject(i).getString("actions")).has("unflag")) {
+                        map.put("trigger_unflag_names" + i, new JSONArray(new JSONObject(new JSONObject(new JSONArray(jsonObject.getString("triggers")).getJSONObject(i).getString("actions")).getString("unflag")).getString("names")).get(0).toString());
                     }
                     if(new JSONObject(new JSONArray(jsonObject.getString("triggers")).getJSONObject(i).getString("actions")).has("audio")) {
                         map.put("trigger_audio_method" + i, new JSONObject(new JSONObject(new JSONArray(jsonObject.getString("triggers")).getJSONObject(i).getString("actions")).getString("audio")).getString("method"));

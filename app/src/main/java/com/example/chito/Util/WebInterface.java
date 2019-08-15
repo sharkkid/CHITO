@@ -71,14 +71,15 @@ public class WebInterface extends Object{
             Log.d("Yes",flag_status.get(trigger_name));
             flag_status.put(trigger_name,"V");
             Log.d("Yes",flag_status.get(trigger_name)+","+GlobalValue.book_id+","+GlobalValue.flag_sceneId);
+            final Handler gps_sesor = new Handler();
+            gps_sesor.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    PlayBookActivity.trigger_start();
+                }
+            }, 1000); // 1 second delay (takes millis)
         }
-        final Handler gps_sesor = new Handler();
-        gps_sesor.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                loadHtmlUrl(GlobalValue.book_id,GlobalValue.flag_sceneId);
-            }
-        }, 1000); // 1 second delay (takes millis)
+
     }
     @JavascriptInterface
     public static void loadHtmlUrl(final String book_id, final String next_sceneId){

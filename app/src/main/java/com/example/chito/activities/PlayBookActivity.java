@@ -79,7 +79,9 @@ public class PlayBookActivity extends AppCompatActivity implements HtmlView,com.
     public static WebPresenter webPresenter;
     public static WebView webView;
 
-//    public static String book_id = "";
+    public static Context context;
+
+    //    public static String book_id = "";
     public static int current_sceneId = 0;
     public static int next_sceneId = 0;
 
@@ -224,47 +226,47 @@ public class PlayBookActivity extends AppCompatActivity implements HtmlView,com.
     public static void loadHtmlUrl(final String book_id , final String html_id , final String next_sceneId , final String flag) {
         webView.loadUrl("file://"+Environment.getExternalStorageDirectory()+"/story_assets/s"+book_id+"/"+html_id+".html");
         webView.setWebViewClient(new WebViewClient()
-            {
+        {
             @Override
             public void onPageFinished(WebView view, String url)
             {
                 super.onPageFinished(view, url);
                 switch (flag) {
                     case "0":
-                    webView.loadUrl("javascript:function loadPage(href)\n" +
-                            "            {\n" +
-                            "                var xmlhttp = new XMLHttpRequest();\n" +
-                            "                xmlhttp.open(\"GET\", href, false);\n" +
-                            "                xmlhttp.send();\n" +
-                            "                return xmlhttp.responseText;\n" +
-                            "            }" +
-                            "var oDiv = document.getElementById(\"go-next\");\n" +
-                            "oDiv.addEventListener(\"click\", function(){\n" +
-                            "    Chito.loadHtmlUrl(\"" + book_id + "\",\"" + next_sceneId + "\");" +
-                            "});");
-                    break;
-            }
+                        webView.loadUrl("javascript:function loadPage(href)\n" +
+                                "            {\n" +
+                                "                var xmlhttp = new XMLHttpRequest();\n" +
+                                "                xmlhttp.open(\"GET\", href, false);\n" +
+                                "                xmlhttp.send();\n" +
+                                "                return xmlhttp.responseText;\n" +
+                                "            }" +
+                                "var oDiv = document.getElementById(\"go-next\");\n" +
+                                "oDiv.addEventListener(\"click\", function(){\n" +
+                                "    Chito.loadHtmlUrl(\"" + book_id + "\",\"" + next_sceneId + "\");" +
+                                "});");
+                        break;
+                }
 //                webView.loadUrl("javascript:callJS(\"測試測試\")");
             }
 
-                @Override
-                public WebResourceResponse shouldInterceptRequest(WebView view, String url) {
+            @Override
+            public WebResourceResponse shouldInterceptRequest(WebView view, String url) {
 //                    Log.d("shouldInterceptRequest", "shouldInterceptRequest : " + url);
-                    if (url.toLowerCase().endsWith("")) {
-                        try {
-                            String picName = url.substring(url.lastIndexOf("/"));
-                            File file = new File(Environment.getExternalStorageDirectory()+"/story_assets/s"+book_id+"/"+picName+".jpeg");
-                            FileInputStream fis = new FileInputStream(file);
-                            WebResourceResponse response = new WebResourceResponse(
-                                    MimeTypeMap.getSingleton().getMimeTypeFromExtension(MimeTypeMap.getFileExtensionFromUrl(url))
-                                    , "UTF-8", fis);
-                            return response;
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
+                if (url.toLowerCase().endsWith("")) {
+                    try {
+                        String picName = url.substring(url.lastIndexOf("/"));
+                        File file = new File(Environment.getExternalStorageDirectory()+"/story_assets/s"+book_id+"/"+picName+".jpeg");
+                        FileInputStream fis = new FileInputStream(file);
+                        WebResourceResponse response = new WebResourceResponse(
+                                MimeTypeMap.getSingleton().getMimeTypeFromExtension(MimeTypeMap.getFileExtensionFromUrl(url))
+                                , "UTF-8", fis);
+                        return response;
+                    } catch (IOException e) {
+                        e.printStackTrace();
                     }
-                    return super.shouldInterceptRequest(view, url);
                 }
+                return super.shouldInterceptRequest(view, url);
+            }
         });
     }
 
@@ -289,6 +291,7 @@ public class PlayBookActivity extends AppCompatActivity implements HtmlView,com.
 
     //劇本流程通用執行邏輯
     public void startPlayBook(final Context context, Map<String, String> story_map, List<Map<String, String>> all_map){
+        this.context = context;
         try {
             final int trigger_total = Integer.parseInt(story_map.get("triggers_total"));
             current_sceneId = Integer.parseInt(story_map.get("sceneId"));
@@ -377,74 +380,86 @@ public class PlayBookActivity extends AppCompatActivity implements HtmlView,com.
             }
             //triggers
 //            if (!audio_method.equals("")) {
-                for (int i = 0; i < trigger_total; i++) {
-                    String[] audio_finish_flag = {"flag","ring_asset_id","call_assetid","name","0","0","0"};//flag , ring_asset_id, call_assetid, caller_name, next_sceneId, fakecallDecline_sceneId, caller_number;
-                    String audio_assetId = story_map.get("audio_assetId" + i);
-                    if(webPresenter.IsMapNull(story_map, "trigger_type"+i).toString().equals("audioFinish")){
+            for (int i = 0; i < trigger_total; i++) {
+                String[] audio_finish_flag = {"flag","ring_asset_id","call_assetid","name","0","0","0","0"};//flag , ring_asset_id, call_assetid, caller_name, next_sceneId, caller_number, fakecallDecline_sceneId;
+                String audio_assetId = story_map.get("audio_assetId" + i);
+                Log.d("audio_finish_flag","id="+audio_assetId);
+                if(webPresenter.IsMapNull(story_map, "trigger_type"+i).equals("audioFinish")){
+                    audio_finish_flag[0] = "2";
+                    audio_finish_flag[4] = webPresenter.IsMapNull(story_map, "trigger_action_sceneId"+i);
+                    if(!webPresenter.IsMapNull(story_map, "trigger_action_fakecallFinish").equals("")) {
                         audio_finish_flag[0] = "1";
                         audio_finish_flag[1] = webPresenter.IsMapNull(story_map, "trigger_action_ring_assetId"+i);
                         audio_finish_flag[2] = webPresenter.IsMapNull(story_map, "trigger_action_call_assetId"+i);
                         audio_finish_flag[3] = webPresenter.IsMapNull(story_map, "trigger_action_callerName");
                         audio_finish_flag[4] = webPresenter.IsMapNull(story_map, "trigger_action_sceneId"+i);
-                        if(!webPresenter.IsMapNull(story_map, "trigger_action_fakecallFinish").equals("")) {
-                            audio_finish_flag[4] = webPresenter.IsMapNull(story_map , "trigger_action_fakecallFinish");
-                            audio_finish_flag[5] = webPresenter.IsMapNull(story_map, "trigger_action_fakecallDeclined");
-                            audio_finish_flag[6] = webPresenter.IsMapNull(story_map, "trigger_action_callerNumber");
-                        }
+                        audio_finish_flag[5] = webPresenter.IsMapNull(story_map, "trigger_action_fakecallDeclined");
+                        audio_finish_flag[6] = webPresenter.IsMapNull(story_map, "trigger_action_callerNumber");
+                        audio_finish_flag[7] = webPresenter.IsMapNull(story_map , "trigger_action_fakecallFinish");
                     }
+                    if(!webPresenter.IsMapNull(story_map, "trigger_audioId"+i).equals(""))
+                        audio_assetId = webPresenter.IsMapNull(story_map, "trigger_audioId"+i);
+                }
 
-                    if (!audio_method.equals("")) {
-                        mp = webPresenter.playSound(context , "1" , audio_assetId , true , audioManager , 5 , 0 , audio_finish_flag);
-                    }
-                    Log.d("story_map.get(trigger_type"+i+")",story_map.get("trigger_type" + i));
-                    switch (story_map.get("trigger_type" + i)) {
-                        case "gps":
-                            next_sceneId = Integer.parseInt(story_map.get("trigger_action_sceneId" + i));
+
+                if (!audio_method.equals("") && !webPresenter.IsMapNull(story_map, "trigger_type"+i).equals("timer")) {
+                    mp = webPresenter.playSound(context , "1" , audio_assetId , false , audioManager , 5 , 0 , audio_finish_flag);
+                }
+                Log.d("story_map.get(trigger_type"+i+")",story_map.get("trigger_type" + i));
+                switch (story_map.get("trigger_type" + i)) {
+                    case "gps":
+                        if(webPresenter.IsMapNull(story_map , "trigger_flag_names"+i).equals("") && webPresenter.IsMapNull(story_map , "trigger_unflag_names"+i).equals("")) {
+                            next_sceneId = Integer.parseInt(webPresenter.IsMapNull(story_map, "trigger_action_sceneId" + i));
                             IsGpsStart = true;
-                            Log.d("gps_PlayBook",IsGpsStart+"");
-                            gps_map.put("gps_latitude",webPresenter.IsMapNull(story_map , "trigger_latitude"+i));
-                            gps_map.put("gps_longitude",webPresenter.IsMapNull(story_map , "trigger_longitude"+i));
-                            gps_map.put("gps_distance",webPresenter.IsMapNull(story_map , "trigger_distance"+i));
-                            gps_map.put("gps_operator",webPresenter.IsMapNull(story_map , "trigger_operator"+i));
-                            gps_map.put("gps_operator",webPresenter.IsMapNull(story_map , "trigger_operator"+i));
-                            gps_map.put("gps_action",webPresenter.IsMapNull(story_map , "action"));
-                            int distance = Integer.parseInt(webPresenter.IsMapNull(story_map , "trigger_distance"+i));
-                            webPresenter.startGPS(this,distance,book_id,next_sceneId,gps_map);
-                            break;
-                        case "notificationClick":
-                            Log.d("notificationClick","進入"+story_map.get("trigger_type" + i));
-                            String[] notificationClick = {"message","next_sceneId"};//內容   下個場景id
-                            notificationClick[0] = webPresenter.IsMapNull(story_map, "notification_title");
-                            notificationClick[1] = webPresenter.IsMapNull(story_map, "trigger_action_sceneId"+i);
-                            webPresenter.dialog_show(notificationClick,diglog,context);
-                            break;
-                        case "beacon":
-                            Log.d("uuid","trigger_beacon_uuid"+i);
-                            IsBleStart = true;
-                            String[] ble_data = {"uuid","major","minor","distance","next_sceneId"};//uuid   major   minor   distance
-                            ble_data[0] = webPresenter.IsMapNull(story_map, "trigger_beacon_uuid"+i);
-                            ble_data[1] = webPresenter.IsMapNull(story_map, "trigger_beacon_major"+i);
-                            ble_data[2] = webPresenter.IsMapNull(story_map, "trigger_beacon_minor"+i);
-                            ble_data[3] = webPresenter.IsMapNull(story_map, "trigger_distance"+i);
-                            ble_data[4] = webPresenter.IsMapNull(story_map, "trigger_action_sceneId"+i);
-                            webPresenter.startBLE(context,book_id,ble_data);
-                            break;
-                        case "webviewScript":
-                            flag_map.put(webPresenter.IsMapNull(story_map, "trigger_id"+i),webPresenter.IsMapNull(story_map, "trigger_flag_names"+i));
-                            flag_status.put(webPresenter.IsMapNull(story_map, "trigger_id"+i),"X");
-                            flag_map.put("flagMatch",webPresenter.IsMapNull(story_map, "trigger_id"+i));
-                            break;
-                        case "flagMatch":
-                            GlobalValue.flag_sceneId = webPresenter.IsMapNull(story_map, "trigger_action_sceneId"+i);
-                            Log.d("webPresenter","123123="+webPresenter.IsMapNull(story_map, "trigger_action_sceneId"+i));
-                            break;
-                    }
+                            Log.d("gps_PlayBook", IsGpsStart + "");
+                            gps_map.put("gps_latitude", webPresenter.IsMapNull(story_map, "trigger_latitude" + i));
+                            gps_map.put("gps_longitude", webPresenter.IsMapNull(story_map, "trigger_longitude" + i));
+                            gps_map.put("gps_distance", webPresenter.IsMapNull(story_map, "trigger_distance" + i));
+                            gps_map.put("gps_operator", webPresenter.IsMapNull(story_map, "trigger_operator" + i));
+                            gps_map.put("gps_operator", webPresenter.IsMapNull(story_map, "trigger_operator" + i));
+                            gps_map.put("gps_action", webPresenter.IsMapNull(story_map, "action"));
+                            int distance = Integer.parseInt(webPresenter.IsMapNull(story_map, "trigger_distance" + i));
+                            webPresenter.startGPS(this, distance, book_id, next_sceneId, gps_map);
+                        }
+                        break;
+                    case "notificationClick":
+                        Log.d("notificationClick","進入"+story_map.get("trigger_type" + i));
+                        String[] notificationClick = {"message","next_sceneId"};//內容   下個場景id
+                        notificationClick[0] = webPresenter.IsMapNull(story_map, "notification_title");
+                        notificationClick[1] = webPresenter.IsMapNull(story_map, "trigger_action_sceneId"+i);
+                        webPresenter.dialog_show(notificationClick,diglog,context);
+                        break;
+                    case "beacon":
+                        Log.d("uuid","trigger_beacon_uuid"+i);
+                        IsBleStart = true;
+                        String[] ble_data = {"uuid","major","minor","distance","next_sceneId"};//uuid   major   minor   distance
+                        ble_data[0] = webPresenter.IsMapNull(story_map, "trigger_beacon_uuid"+i);
+                        ble_data[1] = webPresenter.IsMapNull(story_map, "trigger_beacon_major"+i);
+                        ble_data[2] = webPresenter.IsMapNull(story_map, "trigger_beacon_minor"+i);
+                        ble_data[3] = webPresenter.IsMapNull(story_map, "trigger_distance"+i);
+                        ble_data[4] = webPresenter.IsMapNull(story_map, "trigger_action_sceneId"+i);
+                        webPresenter.startBLE(context,book_id,ble_data);
+                        break;
+                    case "webviewScript":
+                        flag_map.put(webPresenter.IsMapNull(story_map, "trigger_id"+i),webPresenter.IsMapNull(story_map, "trigger_flag_names"+i));
+                        flag_status.put(webPresenter.IsMapNull(story_map, "trigger_id"+i),"X");
+                        flag_map.put("flagMatch",webPresenter.IsMapNull(story_map, "trigger_id"+i));
+                        break;
+                    case "flagMatch":
+                        GlobalValue.flag_sceneId = webPresenter.IsMapNull(story_map, "trigger_action_sceneId"+i);
+                        Log.d("webPresenter","123123="+webPresenter.IsMapNull(story_map, "trigger_action_sceneId"+i));
+                        break;
                 }
             }
-//        }
+
+        }
         catch (Exception e){
             Log.d("Exception",e.toString());
         }
+    }
+
+    public static void trigger_start(){
+        new WebInterface(context,webPresenter).loadHtmlUrl(book_id,GlobalValue.flag_sceneId);
     }
 
     @Override
@@ -577,8 +592,8 @@ public class PlayBookActivity extends AppCompatActivity implements HtmlView,com.
     public void onLocationChanged(Location location) {
         if(location != null) {
 //            if(IsGpsStart) {
-                GlobalValue.Latitude = location.getLatitude();
-                GlobalValue.Longtitude = location.getLongitude();
+            GlobalValue.Latitude = location.getLatitude();
+            GlobalValue.Longtitude = location.getLongitude();
 //                Log.d("更新GPS!" , "Latitude=" + GlobalValue.Latitude + ",Longtitude=" + GlobalValue.Longtitude);
 //            }
 //            else{
@@ -613,7 +628,7 @@ public class PlayBookActivity extends AppCompatActivity implements HtmlView,com.
             return;
         }
 
-            LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient , mLocationRequest , this);
+        LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient , mLocationRequest , this);
 
     }
 
