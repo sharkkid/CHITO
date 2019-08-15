@@ -53,7 +53,9 @@ import java.util.Map;
 
 import static android.content.Context.LOCATION_SERVICE;
 import static android.support.v4.app.ActivityCompat.startActivityForResult;
+import static com.example.chito.Util.GlobalValue.IsBleStart;
 import static com.example.chito.Util.GlobalValue.IsGpsStart;
+import static com.example.chito.activities.PlayBookActivity.audio_timer_handler;
 
 public class MainModel {
 
@@ -383,27 +385,9 @@ public class MainModel {
             return true;
         }
         else{
-            return false;
+            return false;//暫時 true
         }
     }
-
-//    //計算兩點GPS的距離
-//    public boolean IsGPSClosed(Location dis, Location cur,double distance){
-//        if(dis == null)
-//            Log.d("gps_dis","null");
-//        else
-//            Log.d("gps_dis","not null");
-//        double distanceInMeters = cur.distanceTo(dis);
-//        Log.d("gps_dis",String.valueOf(dis));
-//        Log.d("gps_cur",String.valueOf(cur));
-//        Log.d("gps_distanceInMeters","距離:"+distanceInMeters+"");
-//        if(distanceInMeters < distance){
-//            return true;
-//        }
-//        else{
-//            return false;
-//        }
-//    }
 
     /*
     * 以下為劇本JSON處理
@@ -619,13 +603,17 @@ public class MainModel {
                 }
                 //20190730
                 if (new JSONArray(jsonObject.getString("triggers")).getJSONObject(i).has("actions")) {
+                    if(new JSONObject(new JSONArray(jsonObject.getString("triggers")).getJSONObject(i).getString("actions")).has("flag")) {
+                        map.put("trigger_action_flag_names", new JSONArray(new JSONObject(new JSONObject(new JSONArray(jsonObject.getString("triggers")).getJSONObject(i).getString("actions")).getString("flag")).getString("names")).get(0).toString());
+
+                    }
                     if(new JSONObject(new JSONArray(jsonObject.getString("triggers")).getJSONObject(i).getString("actions")).has("gotoScene")) {
                         map.put("trigger_action_sceneId" + i, new JSONObject(new JSONObject(new JSONArray(jsonObject.getString("triggers")).getJSONObject(i).getString("actions")).getString("gotoScene")).getString("sceneId"));
                         map.put("trigger_action_reuse" + i, new JSONObject(new JSONObject(new JSONArray(jsonObject.getString("triggers")).getJSONObject(i).getString("actions")).getString("gotoScene")).getString("reuse"));
                         map.put("trigger_action_target" + i, new JSONObject(new JSONObject(new JSONArray(jsonObject.getString("triggers")).getJSONObject(i).getString("actions")).getString("gotoScene")).getString("target"));
                     }
                     if (new JSONObject(new JSONArray(jsonObject.getString("triggers")).getJSONObject(i).getString("actions")).has("flag")) {
-                        map.put("trigger_flag_names" + i, new JSONObject(new JSONObject(new JSONArray(jsonObject.getString("triggers")).getJSONObject(i).getString("actions")).getString("flag")).getString("names"));
+                        map.put("trigger_flag_names" + i, new JSONArray(new JSONObject(new JSONObject(new JSONArray(jsonObject.getString("triggers")).getJSONObject(i).getString("actions")).getString("flag")).getString("names")).get(0).toString());
                     }
                     if(new JSONObject(new JSONArray(jsonObject.getString("triggers")).getJSONObject(i).getString("actions")).has("audio")) {
                         map.put("trigger_audio_method" + i, new JSONObject(new JSONObject(new JSONArray(jsonObject.getString("triggers")).getJSONObject(i).getString("actions")).getString("audio")).getString("method"));
@@ -755,8 +743,17 @@ public class MainModel {
                     else{
 
                     }
-
                 }
             }, 2000); // 1 second delay (takes millis)
+    }
+    public void startBLE(final Context context , final String book_id, final String[] ble_data) {
+        final Handler gps_sesor = new Handler();
+        gps_sesor.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                IsBleStart = false;
+                WebInterface.loadHtmlUrl(book_id,ble_data[4]+"");
+            }
+        }, 5000); // 1 second delay (takes millis)
     }
 }

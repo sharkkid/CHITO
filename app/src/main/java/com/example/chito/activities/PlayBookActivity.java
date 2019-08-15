@@ -4,6 +4,7 @@ package com.example.chito.activities;
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.ActionBar;
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.DownloadManager;
 import android.app.ProgressDialog;
@@ -61,22 +62,24 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
+
 import java.util.List;
 import java.util.Map;
-import java.util.Timer;
-import java.util.TimerTask;
+
 
 import static android.provider.Settings.ACTION_MANAGE_OVERLAY_PERMISSION;
+import static com.example.chito.Util.GlobalValue.IsBleStart;
 import static com.example.chito.Util.GlobalValue.IsGpsStart;
-
+import static com.example.chito.Util.GlobalValue.flag_map;
+import static com.example.chito.Util.GlobalValue.flag_status;
+import static com.example.chito.Util.GlobalValue.book_id;
 
 public class PlayBookActivity extends AppCompatActivity implements HtmlView,com.google.android.gms.location.LocationListener, GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener  {
     public static WebPresenter webPresenter;
     public static WebView webView;
 
-    public static String book_id = "";
+//    public static String book_id = "";
     public static int current_sceneId = 0;
     public static int next_sceneId = 0;
 
@@ -101,6 +104,7 @@ public class PlayBookActivity extends AppCompatActivity implements HtmlView,com.
     //進度條
     private static ProgressDialog progressDialog;
     public static boolean booklist_isDonwloaded = false;
+    public static Handler audio_timer_handler;
 
     //GPS
     GoogleApiClient mGoogleApiClient;
@@ -339,18 +343,19 @@ public class PlayBookActivity extends AppCompatActivity implements HtmlView,com.
                             }
                         }
                         if(IsTimerStart) {
-                            final Handler audio_timer_handler = new Handler();
+                            audio_timer_handler = new Handler();
                             final int finalTimer_max = timer_max;
                             audio_timer_handler.post(new Runnable() {
                                 @Override
                                 public void run() {
                                     audioManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
-                                    Log.d("audio_timer" , audio_timer + "");
+                                    Log.d("audio_timer" , audio_timer + "s");
                                     for (int x = trigger_total - 1; x > 0; x--) {
                                         if (timer[x] != 0 && audio_timer == timer[x]) {
                                             webPresenter.playSound(context,book_id,audio_assets[x],audioManager, finalTimer_max);
                                             if(timer[x] == finalTimer_max){
                                                 audio_timer_handler.removeCallbacksAndMessages(this);
+                                                WebInterface.loadHtmlUrl(book_id,current_sceneId+"");
                                             }
                                             break;
                                         }
@@ -358,7 +363,11 @@ public class PlayBookActivity extends AppCompatActivity implements HtmlView,com.
                                     }
                                     audio_timer_handler.postDelayed(this , 1000);
                                     audio_timer++;
+                                    if(IsBleStart){
+                                        audio_timer_handler.removeCallbacksAndMessages(null);
+                                    }
                                 }
+
                             }); // 1 second delay (takes millis)
                         }
                     case "ar":
@@ -387,6 +396,7 @@ public class PlayBookActivity extends AppCompatActivity implements HtmlView,com.
                     if (!audio_method.equals("")) {
                         mp = webPresenter.playSound(context , "1" , audio_assetId , true , audioManager , 5 , 0 , audio_finish_flag);
                     }
+                    Log.d("story_map.get(trigger_type"+i+")",story_map.get("trigger_type" + i));
                     switch (story_map.get("trigger_type" + i)) {
                         case "gps":
                             next_sceneId = Integer.parseInt(story_map.get("trigger_action_sceneId" + i));
@@ -408,9 +418,28 @@ public class PlayBookActivity extends AppCompatActivity implements HtmlView,com.
                             notificationClick[1] = webPresenter.IsMapNull(story_map, "trigger_action_sceneId"+i);
                             webPresenter.dialog_show(notificationClick,diglog,context);
                             break;
+                        case "beacon":
+                            Log.d("uuid","trigger_beacon_uuid"+i);
+                            IsBleStart = true;
+                            String[] ble_data = {"uuid","major","minor","distance","next_sceneId"};//uuid   major   minor   distance
+                            ble_data[0] = webPresenter.IsMapNull(story_map, "trigger_beacon_uuid"+i);
+                            ble_data[1] = webPresenter.IsMapNull(story_map, "trigger_beacon_major"+i);
+                            ble_data[2] = webPresenter.IsMapNull(story_map, "trigger_beacon_minor"+i);
+                            ble_data[3] = webPresenter.IsMapNull(story_map, "trigger_distance"+i);
+                            ble_data[4] = webPresenter.IsMapNull(story_map, "trigger_action_sceneId"+i);
+                            webPresenter.startBLE(context,book_id,ble_data);
+                            break;
+                        case "webviewScript":
+                            flag_map.put(webPresenter.IsMapNull(story_map, "trigger_id"+i),webPresenter.IsMapNull(story_map, "trigger_flag_names"+i));
+                            flag_status.put(webPresenter.IsMapNull(story_map, "trigger_id"+i),"X");
+                            flag_map.put("flagMatch",webPresenter.IsMapNull(story_map, "trigger_id"+i));
+                            break;
+                        case "flagMatch":
+                            GlobalValue.flag_sceneId = webPresenter.IsMapNull(story_map, "trigger_action_sceneId"+i);
+                            Log.d("webPresenter","123123="+webPresenter.IsMapNull(story_map, "trigger_action_sceneId"+i));
+                            break;
                     }
                 }
-
             }
 //        }
         catch (Exception e){
@@ -488,6 +517,7 @@ public class PlayBookActivity extends AppCompatActivity implements HtmlView,com.
             @Override
             public void onClick(DialogInterface dialog , int which) {
                 new WebInterface(context,webPresenter).loadHtmlUrl(book_id,notificationClick[1]);
+                FakeCallActivity.finishFakeCall((Activity) context);
             }
         });
         dialog.show();
@@ -546,15 +576,15 @@ public class PlayBookActivity extends AppCompatActivity implements HtmlView,com.
     @Override
     public void onLocationChanged(Location location) {
         if(location != null) {
-            if(IsGpsStart) {
+//            if(IsGpsStart) {
                 GlobalValue.Latitude = location.getLatitude();
                 GlobalValue.Longtitude = location.getLongitude();
-                Log.d("更新GPS!" , "Latitude=" + GlobalValue.Latitude + ",Longtitude=" + GlobalValue.Longtitude);
-            }
-            else{
-                GlobalValue.Longtitude = 0;
-                GlobalValue.Latitude = 0;
-            }
+//                Log.d("更新GPS!" , "Latitude=" + GlobalValue.Latitude + ",Longtitude=" + GlobalValue.Longtitude);
+//            }
+//            else{
+//                GlobalValue.Longtitude = 0;
+//                GlobalValue.Latitude = 0;
+//            }
         }
         else{
             Log.d("更新GPS!" , "Location is null!");

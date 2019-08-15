@@ -9,6 +9,7 @@ import android.media.AudioManager;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Environment;
+import android.os.Handler;
 import android.util.Log;
 import android.webkit.JavascriptInterface;
 import android.webkit.WebView;
@@ -34,6 +35,9 @@ import java.io.InputStreamReader;
 import java.util.Map;
 
 import static android.content.Context.DOWNLOAD_SERVICE;
+import static com.example.chito.Util.GlobalValue.IsBleStart;
+import static com.example.chito.Util.GlobalValue.flag_map;
+import static com.example.chito.Util.GlobalValue.flag_status;
 
 public class WebInterface extends Object{
     public static String TAG = "WebInterface";
@@ -60,6 +64,21 @@ public class WebInterface extends Object{
         progressDialog = ProgressDialog.show(context,
                 "劇本下載中", "請等待...", true);
         new PlayBook_Downloader().execute("http://chito-test.nya.tw:3000/api/v1/playbooks/" + book_id,book_id);
+    }
+    @JavascriptInterface
+    public void trigger(String trigger_name){
+        if(flag_map.containsKey(trigger_name)){
+            Log.d("Yes",flag_status.get(trigger_name));
+            flag_status.put(trigger_name,"V");
+            Log.d("Yes",flag_status.get(trigger_name)+","+GlobalValue.book_id+","+GlobalValue.flag_sceneId);
+        }
+        final Handler gps_sesor = new Handler();
+        gps_sesor.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                loadHtmlUrl(GlobalValue.book_id,GlobalValue.flag_sceneId);
+            }
+        }, 1000); // 1 second delay (takes millis)
     }
     @JavascriptInterface
     public static void loadHtmlUrl(final String book_id, final String next_sceneId){

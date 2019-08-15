@@ -6,6 +6,7 @@ import android.content.Context;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.net.ConnectivityManager;
+import android.os.Handler;
 import android.view.Window;
 
 import com.example.chito.model.MainModel;
@@ -110,8 +111,14 @@ public class WebPresenter {
         return mainModel.checkGpsStatus(context);
     }
 
+    //啟動GPS判斷
     public void startGPS(final Context context, float distance, String book_id, int next_sceneId,Map<String,String> gps_map) {
         mainModel.startGPS(context,distance, book_id, next_sceneId,gps_map);
+    }
+
+    //啟動藍芽判斷
+    public void startBLE(Context context , final String book_id, final String[] ble_data) {
+        mainModel.startBLE(context,book_id,ble_data);
     }
 
     public void dialog_show(String[] notificationClick, AlertDialog.Builder dialog, Context context){

@@ -2,6 +2,8 @@ package com.example.chito.activities;
 
 
 import android.Manifest;
+import android.app.ActionBar;
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.DownloadManager;
 import android.app.ProgressDialog;
@@ -68,13 +70,22 @@ public class FakeCallActivity extends AppCompatActivity{
     }
 
     public void init() {
+
         mainModel = new MainModel();
         //主要調配器宣告
         //20190804
         setContentView(R.layout.fakecall);
         try
         {
+            //隱藏Action Bar
             this.getSupportActionBar().hide();
+            //隱藏Status Bar
+            View decorView = FakeCallActivity.this.getWindow().getDecorView();
+            int uiOptions = View.SYSTEM_UI_FLAG_FULLSCREEN;
+            decorView.setSystemUiVisibility(uiOptions);
+            ActionBar actionBar = FakeCallActivity.this.getActionBar();
+            if(actionBar != null)
+                actionBar.hide();
         }
         catch (NullPointerException e){}
 
@@ -116,6 +127,7 @@ public class FakeCallActivity extends AppCompatActivity{
                             pickup.removeCallbacksAndMessages(null);
                             mp.stop();
                             mp.release();
+
                         }
                     }
                 });
@@ -132,6 +144,11 @@ public class FakeCallActivity extends AppCompatActivity{
             }
         });
     }
+
+    public static void finishFakeCall(Activity activity){
+        activity.finish();
+    }
+
     public void playSound(Context context,String book_id,String fileName){
         try {
             if (mp.isPlaying()) {
