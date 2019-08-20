@@ -78,6 +78,13 @@ public class PlayBookActivity extends AppCompatActivity implements HtmlView,com.
         GoogleApiClient.OnConnectionFailedListener  {
     public static WebPresenter webPresenter;
     public static WebView webView;
+    public static String WebViewClick_btn;
+    public static String action_name;
+    public static String match;
+    public static String qr_flag = "1";
+    public static String qr_retryMessage;
+    public static String trigger_action_changePlaybookThumbnail;
+    public static String qr_audio;
 
     public static Context context;
 
@@ -194,7 +201,7 @@ public class PlayBookActivity extends AppCompatActivity implements HtmlView,com.
                     .build();
         }
         audioManager = (AudioManager)this.getSystemService(Context.AUDIO_SERVICE);
-        startPlayBook(this,scenes_list.get(0),scenes_list);
+        startPlayBook(this,scenes_list.get(9),scenes_list);
     }
 
     private void updateLocation(Location location) {
@@ -222,6 +229,29 @@ public class PlayBookActivity extends AppCompatActivity implements HtmlView,com.
         }
     };
 
+    //接收QR回傳值
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == 1) {
+            if(resultCode == RESULT_OK) {
+                if(data.getStringExtra("qr_result").equals(match)){
+                    qr_flag = "1";
+                    showToast("劇本結束,載入花絮語音中,請稍後！");
+//                    webPresenter.playSound(this.context,book_id,qr_audio,audioManager,100);
+                    new Handler().postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+//                            loadHtmlUrl(book_id,trigger_action_changePlaybookThumbnail);
+                            webPresenter.playSound(context,book_id,qr_audio,audioManager,100);
+                        }
+                    },2000);
+                }
+                else{
+                    showToast("錯誤的二維條碼,請重新掃描！");
+                }
+            }
+        }
+    }
 
     public static void loadHtmlUrl(final String book_id , final String html_id , final String next_sceneId , final String flag) {
         webView.loadUrl("file://"+Environment.getExternalStorageDirectory()+"/story_assets/s"+book_id+"/"+html_id+".html");
@@ -231,6 +261,23 @@ public class PlayBookActivity extends AppCompatActivity implements HtmlView,com.
             public void onPageFinished(WebView view, String url)
             {
                 super.onPageFinished(view, url);
+                String event = "";
+                Log.d("event",WebViewClick_btn);
+                switch (WebViewClick_btn) {
+                    case "go-next":
+                        event = "    Chito.loadHtmlUrl(\"" + book_id + "\",\"" + next_sceneId + "\");";
+                        break;
+                    case "ok":
+                        switch (action_name) {
+                            case "qrScan":
+                                qr_flag = "0";
+                                event = "    Chito.openQrScanner(\""+qr_retryMessage+"\");";
+                            break;
+                        }
+                        break;
+                }
+
+                Log.d("event",event);
                 switch (flag) {
                     case "0":
                         webView.loadUrl("javascript:function loadPage(href)\n" +
@@ -240,9 +287,9 @@ public class PlayBookActivity extends AppCompatActivity implements HtmlView,com.
                                 "                xmlhttp.send();\n" +
                                 "                return xmlhttp.responseText;\n" +
                                 "            }" +
-                                "var oDiv = document.getElementById(\"go-next\");\n" +
+                                "var oDiv = document.getElementById(\""+WebViewClick_btn+"\");\n" +
                                 "oDiv.addEventListener(\"click\", function(){\n" +
-                                "    Chito.loadHtmlUrl(\"" + book_id + "\",\"" + next_sceneId + "\");" +
+                                event +
                                 "});");
                         break;
                 }
@@ -317,7 +364,9 @@ public class PlayBookActivity extends AppCompatActivity implements HtmlView,com.
                         for (int i = 0; i < trigger_total; i++) {
                             switch (story_map.get("trigger_type" + i)) {
                                 case "webviewClick":
-                                    next_sceneId = Integer.parseInt(story_map.get("trigger_action_sceneId" + i));
+                                    if(!webPresenter.IsMapNull(story_map , "trigger_id"+i).equals(""))
+                                        WebViewClick_btn = webPresenter.IsMapNull(story_map , "trigger_id"+i);
+                                    next_sceneId = (!webPresenter.IsMapNull(story_map , "trigger_action_sceneId" + i).equals("")) ? Integer.parseInt(webPresenter.IsMapNull(story_map , "trigger_action_sceneId" + i)) : Integer.parseInt(String.valueOf(current_sceneId));
                                     loadHtmlUrl(book_id, current_html, next_sceneId + "", "0");
                                     break;
                                 case "timer":
@@ -448,6 +497,14 @@ public class PlayBookActivity extends AppCompatActivity implements HtmlView,com.
                     case "flagMatch":
                         GlobalValue.flag_sceneId = webPresenter.IsMapNull(story_map, "trigger_action_sceneId"+i);
                         Log.d("webPresenter","123123="+webPresenter.IsMapNull(story_map, "trigger_action_sceneId"+i));
+                        break;
+                    case "qrcode":
+                        action_name = webPresenter.IsMapNull(story_map , "trigger_action_name");
+                        match = webPresenter.IsMapNull(story_map , "trigger_match");
+                        qr_retryMessage = webPresenter.IsMapNull(story_map , "trigger_audio_disablePlaybook_retryMessage");
+                        qr_audio = webPresenter.IsMapNull(story_map , "trigger_audio_assetsId"+i);
+                        Log.d("qr_audio","i="+i+",value="+webPresenter.IsMapNull(story_map , "trigger_audio_assetsId"+i));
+                        trigger_action_changePlaybookThumbnail = webPresenter.IsMapNull(story_map , "trigger_action_changePlaybookThumbnail");
                         break;
                 }
             }

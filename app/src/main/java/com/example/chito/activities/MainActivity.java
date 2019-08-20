@@ -62,6 +62,7 @@ public class MainActivity extends AppCompatActivity implements MainView {
     private Button btn_startService;
     private Button btn_web;
     private Button btn_download;
+    private Button btn_qr;
 
     private BluetoothAdapter mBtAdapter;
     private BluetoothAdapter.LeScanCallback mLeScanCallback;
@@ -149,8 +150,25 @@ public class MainActivity extends AppCompatActivity implements MainView {
 //                startActivity(goweb);
             }
         });
+
+        btn_qr = findViewById(R.id.btn_qr);
+        btn_qr.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent goqr = new Intent(MainActivity.this, QrScanner.class);
+                startActivityForResult(goqr, 1);
+            }
+        });
     }
 
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == 1) {
+            if(resultCode == RESULT_OK) {
+                showToast(data.getStringExtra("qr_result"));
+            }
+        }
+    }
 
     @Override
     public void setContentView() {

@@ -112,25 +112,45 @@ public class FakeCallActivity extends AppCompatActivity{
             public void onClick(View v) {
                 playSound(FakeCallActivity.this,book_id,call_id+"");
                 ui_call_time.setVisibility(View.VISIBLE);
-                final Handler pickup = new Handler();
-                pickup.post(new Runnable() {
+
+                final Handler audio_finish = new Handler();
+                final MediaPlayer finalMp = mp;
+                audio_finish.postDelayed(new Runnable() {
                     @Override
                     public void run() {
-                        ui_call_time.setText((mainModel.secToTime(time)));
-                        time++;
-//                        Log.d("播放時間","current="+mp.getCurrentPosition()+",whole="+mp.getDuration());
-                        if(mp.getCurrentPosition() < (mp.getDuration()-50300)){
-                            pickup.postDelayed(this,1000);
-                        }
-                        else{
+                        Log.d("CurrentPosition", finalMp.getCurrentPosition() + "s,Duration="+finalMp.getDuration());
+                        if (finalMp.getCurrentPosition() < finalMp.getDuration() - 1000) {
+                            audio_finish.postDelayed(this, 1000);
+                        } else {
+                            Log.d("CurrentPosition", "超過!");
+                            audio_finish.removeCallbacksAndMessages(null);
                             new WebInterface(FakeCallActivity.this,WebInterface.webPresenter).loadHtmlUrl(book_id,next_sceneId);
-                            pickup.removeCallbacksAndMessages(null);
-                            mp.stop();
-                            mp.release();
-
+                            finalMp.stop();
+                            finalMp.release();
                         }
                     }
-                });
+                }, 0); // 1 second delay (takes millis)
+
+
+//                final Handler pickup = new Handler();
+//                pickup.post(new Runnable() {
+//                    @Override
+//                    public void run() {
+//                        ui_call_time.setText((mainModel.secToTime(time)));
+//                        time++;
+////                        Log.d("播放時間","current="+mp.getCurrentPosition()+",whole="+mp.getDuration());
+//                        if(mp.getCurrentPosition() < (mp.getDuration()-500)){
+//                            pickup.postDelayed(this,1000);
+//                        }
+//                        else{
+//                            new WebInterface(FakeCallActivity.this,WebInterface.webPresenter).loadHtmlUrl(book_id,next_sceneId);
+//                            pickup.removeCallbacksAndMessages(null);
+//                            mp.stop();
+//                            mp.release();
+//
+//                        }
+//                    }
+//                });
                 btn_receive.setVisibility(View.GONE);
                 btn_reject.setVisibility(View.GONE);
             }

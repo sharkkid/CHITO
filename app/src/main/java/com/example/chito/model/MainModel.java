@@ -228,16 +228,17 @@ public class MainModel {
         final MediaPlayer mp = MediaPlayer.create(context, Uri.parse("file:///"+Environment.getExternalStorageDirectory()+"/story_assets/s"+book_id+"/"+fileName+".mp3"));
         Log.d("Audio_path",Uri.parse("file:///"+Environment.getExternalStorageDirectory()+"/story_assets/s"+book_id+"/"+fileName+".mp3")+"");
         if(mp != null) {
+            mp.setLooping(true);
             mp.start();
-            final Handler audio_finish = new Handler();
-            audio_finish.postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    mp.stop();
-
-//                    }
-                }
-            }, 5000); // 1 second delay (takes millis)
+//            final Handler audio_finish = new Handler();
+//            audio_finish.postDelayed(new Runnable() {
+//                @Override
+//                public void run() {
+//                    mp.stop();
+//
+////                    }
+//                }
+//            }, 5000); // 1 second delay (takes millis)
         }
     }
 
@@ -307,7 +308,7 @@ public class MainModel {
                             audio_finish.postDelayed(this, 1000);
                         } else {
                             Log.d("CurrentPosition", "超過!");
-                            fadeOut.removeCallbacksAndMessages(null);
+                            audio_finish.removeCallbacksAndMessages(null);
                             finalMp.stop();
                             PlayBookActivity.FakeCall(context, audio_finish_flag[1], audio_finish_flag[2], audio_finish_flag[3], audio_finish_flag[7], audio_finish_flag[5], audio_finish_flag[6]);
                         }
@@ -324,7 +325,7 @@ public class MainModel {
                             audio_finish.postDelayed(this, 1000);
                         } else {
                             Log.d("CurrentPosition", "超過!");
-                            fadeOut.removeCallbacksAndMessages(null);
+                            audio_finish.removeCallbacksAndMessages(null);
                             finalMp3.stop();
                             new WebInterface(context,webPresenter).loadHtmlUrl(book_id,audio_finish_flag[4]);
 
@@ -621,10 +622,16 @@ public class MainModel {
                     map.put("trigger_audioId"+i, new JSONArray(jsonObject.getString("triggers")).getJSONObject(i).getString("audioId"));
                 }
                 if (new JSONArray(jsonObject.getString("triggers")).getJSONObject(i).has("match")) {
-                    map.put("trigger_,match"+i, new JSONArray(jsonObject.getString("triggers")).getJSONObject(i).getString("match"));
+                    map.put("trigger_match", new JSONArray(jsonObject.getString("triggers")).getJSONObject(i).getString("match"));
                 }
                 //20190730
                 if (new JSONArray(jsonObject.getString("triggers")).getJSONObject(i).has("actions")) {
+                    if(new JSONObject(new JSONArray(jsonObject.getString("triggers")).getJSONObject(i).getString("actions")).has("qrScan")) {
+                        map.put("trigger_action_name", "qrScan");
+                    }
+                    if(new JSONObject(new JSONArray(jsonObject.getString("triggers")).getJSONObject(i).getString("actions")).has("changePlaybookThumbnail")) {
+                        map.put("trigger_action_changePlaybookThumbnail", new JSONObject(new JSONObject(new JSONArray(jsonObject.getString("triggers")).getJSONObject(i).getString("actions")).getString("changePlaybookThumbnail")).getString("assetId"));
+                    }
                     if(new JSONObject(new JSONArray(jsonObject.getString("triggers")).getJSONObject(i).getString("actions")).has("flag")) {
                         map.put("trigger_action_flag_names", new JSONArray(new JSONObject(new JSONObject(new JSONArray(jsonObject.getString("triggers")).getJSONObject(i).getString("actions")).getString("flag")).getString("names")).get(0).toString());
 
@@ -649,8 +656,8 @@ public class MainModel {
                         map.put("trigger_audio_disablePlaybook_assetId" + i,new JSONObject(new JSONObject(new JSONArray(jsonObject.getString("triggers")).getJSONObject(i).getString("actions")).getString("changePlaybookThumbnail")).getString("assetId"));
                     }
                     if(new JSONObject(new JSONArray(jsonObject.getString("triggers")).getJSONObject(i).getString("actions")).has("disablePlaybook")) {
-                        map.put("trigger_audio_disablePlaybook_retryMessage" + i,new JSONObject(new JSONObject(new JSONArray(jsonObject.getString("triggers")).getJSONObject(i).getString("actions")).getString("disablePlaybook")).getString("message"));
-                        map.put("trigger_audio_disablePlaybook_message" + i,new JSONObject(new JSONObject(new JSONArray(jsonObject.getString("triggers")).getJSONObject(i).getString("actions")).getString("disablePlaybook")).getString("retryMessage"));
+                        map.put("trigger_audio_disablePlaybook_retryMessage",new JSONObject(new JSONObject(new JSONArray(jsonObject.getString("triggers")).getJSONObject(i).getString("actions")).getString("disablePlaybook")).getString("retryMessage"));
+                        map.put("trigger_audio_disablePlaybook_message",new JSONObject(new JSONObject(new JSONArray(jsonObject.getString("triggers")).getJSONObject(i).getString("actions")).getString("disablePlaybook")).getString("message"));
                     }
                     if(new JSONObject(new JSONArray(jsonObject.getString("triggers")).getJSONObject(i).getString("actions")).has("finishPlaybook")) {
                         map.put("trigger_finishPlaybook" + i, new JSONObject(new JSONArray(jsonObject.getString("triggers")).getJSONObject(i).getString("actions")).getString("finishPlaybook"));

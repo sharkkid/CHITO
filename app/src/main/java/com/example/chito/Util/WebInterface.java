@@ -5,6 +5,7 @@ import android.app.AlertDialog;
 import android.app.DownloadManager;
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.Intent;
 import android.media.AudioManager;
 import android.net.Uri;
 import android.os.AsyncTask;
@@ -16,7 +17,9 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.Toast;
 
+import com.example.chito.activities.MainActivity;
 import com.example.chito.activities.PlayBookActivity;
+import com.example.chito.activities.QrScanner;
 import com.example.chito.presenter.WebPresenter;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
@@ -38,6 +41,7 @@ import static android.content.Context.DOWNLOAD_SERVICE;
 import static com.example.chito.Util.GlobalValue.IsBleStart;
 import static com.example.chito.Util.GlobalValue.flag_map;
 import static com.example.chito.Util.GlobalValue.flag_status;
+import static com.example.chito.activities.PlayBookActivity.qr_flag;
 
 public class WebInterface extends Object{
     public static String TAG = "WebInterface";
@@ -64,6 +68,16 @@ public class WebInterface extends Object{
         progressDialog = ProgressDialog.show(context,
                 "劇本下載中", "請等待...", true);
         new PlayBook_Downloader().execute("http://chito-test.nya.tw:3000/api/v1/playbooks/" + book_id,book_id);
+    }
+    @JavascriptInterface
+    public void openQrScanner(String retryMessage){
+        if(qr_flag.equals("0")) {
+            Intent goqr = new Intent(context , QrScanner.class);
+            ((Activity) context).startActivityForResult(goqr , 1);
+        }
+        else{
+            ShowToast(retryMessage);
+        }
     }
     @JavascriptInterface
     public void trigger(String trigger_name){
