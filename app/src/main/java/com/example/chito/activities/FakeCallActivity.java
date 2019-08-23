@@ -63,6 +63,7 @@ public class FakeCallActivity extends AppCompatActivity{
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         init();
+        mainModel.wakeUpAndUnlock(FakeCallActivity.this);
 
 
         playSound(this,book_id,ring_id+"");

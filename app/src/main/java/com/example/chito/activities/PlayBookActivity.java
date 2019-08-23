@@ -201,7 +201,7 @@ public class PlayBookActivity extends AppCompatActivity implements HtmlView,com.
                     .build();
         }
         audioManager = (AudioManager)this.getSystemService(Context.AUDIO_SERVICE);
-        startPlayBook(this,scenes_list.get(9),scenes_list);
+        startPlayBook(this,scenes_list.get(0),scenes_list);
     }
 
     private void updateLocation(Location location) {
@@ -338,6 +338,7 @@ public class PlayBookActivity extends AppCompatActivity implements HtmlView,com.
 
     //劇本流程通用執行邏輯
     public void startPlayBook(final Context context, Map<String, String> story_map, List<Map<String, String>> all_map){
+        webPresenter.wakeUpAndUnlock(context);
         this.context = context;
         try {
             final int trigger_total = Integer.parseInt(story_map.get("triggers_total"));

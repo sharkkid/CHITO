@@ -127,4 +127,8 @@ public class WebPresenter {
     public void dialog_dismiss(AlertDialog dialog){
         htmlView.dialog_dismiss(dialog);
     }
+
+    public void wakeUpAndUnlock(Context context){
+        mainModel.wakeUpAndUnlock(context);
+    }
 }
