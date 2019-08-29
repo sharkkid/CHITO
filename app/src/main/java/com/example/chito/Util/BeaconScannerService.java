@@ -10,23 +10,32 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationManager;
+import android.media.MediaPlayer;
 import android.os.Binder;
 import android.os.Build;
+import android.os.Handler;
 import android.os.IBinder;
 import android.provider.Settings;
 import android.support.annotation.RequiresApi;
 import android.support.v4.app.ActivityCompat;
 import android.util.Log;
 import android.view.WindowManager;
+import android.widget.Toast;
 
+import com.example.chito.activities.FakeCallActivity;
 import com.example.chito.model.BleManagement;
 import com.example.chito.model.MainModel;
 import com.example.chito.presenter.MainPresenter;
+
+import static com.example.chito.Util.GlobalValue.IsBleStart;
+import static com.example.chito.Util.GlobalValue.IsGpsStart;
 
 public class BeaconScannerService extends Service {
     private BluetoothAdapter mBtAdapter;
     private BluetoothAdapter.LeScanCallback mLeScanCallback;
     private BleManagement bleManagement;
+    private Beacon beacon;
+    private boolean flag = false;
 
     public class LocalBinder extends Binder //宣告一個繼承 Binder 的類別 LocalBinder
     {
@@ -55,71 +64,42 @@ public class BeaconScannerService extends Service {
 //                Log.d("TAG" , "BLE device : " + device.getName());
 
                 try {
-                    Beacon beacon = new Beacon(scanRecord , device , rssi);
-                    String message = "ibeaconName" +
-                            "\nMac：" + beacon.getMacAddress()
-                            + " \nUUID：" + beacon.getUuid()
-                            + "\nMajor：" + beacon.getMajor()
-                            + "\nMinor：" + beacon.getMinor()
-                            + "\nTxPower：" + beacon.getTxPower()
-                            + "\nrssi：" + rssi;
-                    Log.d("Beacon" , message);
-                    Log.d("distance" , "distance：" + beacon.distance());
+                    if (IsBleStart) {
+                        beacon = new Beacon(scanRecord , device , rssi);
+                        String message = "ibeaconName" +
+                                "\nMac：" + beacon.getMacAddress()
+                                + " \nUUID：" + beacon.getUuid()
+                                + "\nMajor：" + beacon.getMajor()
+                                + "\nMinor：" + beacon.getMinor()
+                                + "\nTxPower：" + beacon.getTxPower()
+                                + "\nrssi：" + rssi;
+                        Log.d("Beacon" , message);
+                        Log.d("distance" , "distance：" + beacon.distance());
+                        GlobalValue.BLE_UUID = beacon.getUuid();
+                        GlobalValue.BLE_distance = beacon.distance();
+//                        GlobalValue.BLE_UUID = "b9d4fe7a-be80-46a0-9d76-5fe78f1b9405";
+//                        GlobalValue.BLE_distance = 31;
+                    }
                 } catch (BeaconFormateNotFoundException e) {
-
+                    e.printStackTrace();
                 }
             }
         };
         bleManagement = new BleManagement(this , mLeScanCallback);
         bleManagement.scanLeDevice(true);
+        final Handler toast = new Handler();
+        toast.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                if (flag) {
+//                    Toast.makeText(BeaconScannerService.this,"d="+beacon.distance(),Toast.LENGTH_SHORT).show();
+                } else {
 
-
-        //取得GPS
-        if (!MainModel.checkGpsStatus(this)) {
-            AlertDialog.Builder dialog = new AlertDialog.Builder(this);
-            dialog.setTitle("GPS定位權限請求!");
-            dialog.setMessage("請允許本程式GPS定位權限!");
-            dialog.setPositiveButton("前往" , new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface arg0 , int arg1) {
-                    // TODO Auto-generated method stub
-//                    Intent enableIntent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS );
-//                    startActivityForResult( enableIntent, MainPresenter.ACCESS_COARSE_LOCATION );
                 }
-            });
-            dialog.setNegativeButton("拒絕" , new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface arg0 , int arg1) {
-                    // TODO Auto-generated method stub
-                }
-            });
-            dialog.show();
-        } else {
-            try {
-                LocationManager locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
-                if (ActivityCompat.checkSelfPermission(this , Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this , Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                    // TODO: Consider calling
-                    //    ActivityCompat#requestPermissions
-                    // here to request the missing permissions, and then overriding
-                    //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-                    //                                          int[] grantResults)
-                    // to handle the case where the user grants the permission. See the documentation
-                    // for ActivityCompat#requestPermissions for more details.
-                    return;
-                }
-                Location location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-                if (location == null) {
-                    location = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
-                }
-                Double latitude = location.getLatitude();
-                Double longtitude = location.getLongitude();
-                String TAG = "GPS";
-                Log.d(TAG, "latitude=" + latitude + ",longtitude=" + longtitude);
             }
-            catch (Exception e){
+        }, 0); // 1 second delay (takes millis)
 
-            }
-        }
+        
 //        showDialog();
     }
 

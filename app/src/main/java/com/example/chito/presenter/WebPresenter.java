@@ -131,4 +131,8 @@ public class WebPresenter {
     public void wakeUpAndUnlock(Context context){
         mainModel.wakeUpAndUnlock(context);
     }
+
+//    public double calculateDistance(int txPower, double rssi) {
+//        return  mainModel.calculateDistance(txPower,rssi);
+//    }
 }

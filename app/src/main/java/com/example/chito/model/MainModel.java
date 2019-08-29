@@ -27,6 +27,7 @@ import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.widget.Toast;
 
+import com.example.chito.Util.BeaconScannerService;
 import com.example.chito.Util.GPSListner;
 import com.example.chito.Util.GlobalValue;
 import com.example.chito.Util.WebInterface;
@@ -52,6 +53,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import static android.content.Context.LOCATION_SERVICE;
 import static android.support.v4.app.ActivityCompat.startActivityForResult;
@@ -430,6 +432,20 @@ public class MainModel {
         }
     }
 
+    public double calculateDistance(int txPower, double rssi) {
+        if (rssi == 0) {
+            return -1.0; // if we cannot determine accuracy, return -1.
+        }
+        double ratio = rssi*1.0/txPower;
+        if (ratio < 1.0) {
+            return Math.pow(ratio,10);
+        }
+        else {
+            double accuracy =  (0.89976)*Math.pow(ratio,7.7095) + 0.111;
+            return accuracy;
+        }
+    }
+
     /*
     * 以下為劇本JSON處理
     *
@@ -797,13 +813,23 @@ public class MainModel {
             }, 2000); // 1 second delay (takes millis)
     }
     public void startBLE(final Context context , final String book_id, final String[] ble_data) {
-        final Handler gps_sesor = new Handler();
-        gps_sesor.postDelayed(new Runnable() {
+        Intent stopIntent = new Intent(context, BeaconScannerService.class);
+        context.startService(stopIntent);
+
+        final Handler ble_sensor = new Handler();
+        ble_sensor.postDelayed(new Runnable() {
             @Override
             public void run() {
-                IsBleStart = false;
-                WebInterface.loadHtmlUrl(book_id,ble_data[4]+"");
+                if(GlobalValue.BLE_UUID.equals(ble_data[0]) && GlobalValue.BLE_distance > Double.parseDouble(ble_data[3])){
+                    Log.d("BLE","BLE not run");
+                    IsBleStart = false;
+                    WebInterface.loadHtmlUrl(book_id,ble_data[4]+"");
+                }
+                else{
+                    Log.d("BLE","BLE run,GlobalValue.BLE_distance="+GlobalValue.BLE_distance+",uuid="+GlobalValue.BLE_UUID);
+                    ble_sensor.postDelayed(this, 1000);
+                }
             }
-        }, 5000); // 1 second delay (takes millis)
+        }, 1000); // 1 second delay (takes millis)
     }
 }

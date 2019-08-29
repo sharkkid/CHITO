@@ -9,6 +9,8 @@ public class GlobalValue {
     public static double Latitude = 0;
     public static double Longtitude = 0;
     public static boolean IsGpsStart = false;
+    public static String BLE_UUID = "";
+    public static double BLE_distance = 0;
     public static boolean IsBleStart = false;
     public static Map<String,String> flag_map = new ArrayMap<>();
     public static Map<String,String> flag_status = new ArrayMap<>();
