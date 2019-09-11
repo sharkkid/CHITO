@@ -73,10 +73,11 @@ public class BeaconScannerService extends Service {
                                 + "\nMinor：" + beacon.getMinor()
                                 + "\nTxPower：" + beacon.getTxPower()
                                 + "\nrssi：" + rssi;
+                        Log.d("beacon.getUuid()" , message);
                         Log.d("Beacon" , message);
-                        Log.d("distance" , "distance：" + beacon.distance());
-                        GlobalValue.BLE_UUID = beacon.getUuid();
+                        GlobalValue.BLE_UUID = beacon.getUuid().toLowerCase();
                         GlobalValue.BLE_distance = beacon.distance();
+                        Log.d("BLE UUID" , GlobalValue.BLE_UUID);
 //                        GlobalValue.BLE_UUID = "b9d4fe7a-be80-46a0-9d76-5fe78f1b9405";
 //                        GlobalValue.BLE_distance = 31;
                     }

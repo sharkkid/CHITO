@@ -132,26 +132,6 @@ public class FakeCallActivity extends AppCompatActivity{
                     }
                 }, 0); // 1 second delay (takes millis)
 
-
-//                final Handler pickup = new Handler();
-//                pickup.post(new Runnable() {
-//                    @Override
-//                    public void run() {
-//                        ui_call_time.setText((mainModel.secToTime(time)));
-//                        time++;
-////                        Log.d("播放時間","current="+mp.getCurrentPosition()+",whole="+mp.getDuration());
-//                        if(mp.getCurrentPosition() < (mp.getDuration()-500)){
-//                            pickup.postDelayed(this,1000);
-//                        }
-//                        else{
-//                            new WebInterface(FakeCallActivity.this,WebInterface.webPresenter).loadHtmlUrl(book_id,next_sceneId);
-//                            pickup.removeCallbacksAndMessages(null);
-//                            mp.stop();
-//                            mp.release();
-//
-//                        }
-//                    }
-//                });
                 btn_receive.setVisibility(View.GONE);
                 btn_reject.setVisibility(View.GONE);
             }
@@ -160,8 +140,10 @@ public class FakeCallActivity extends AppCompatActivity{
         btn_reject.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-//                mediaPlayer.stop();
+                mp.stop();
+                Intent mIntent = getIntent();
                 finish();
+                startActivity(mIntent);
             }
         });
     }

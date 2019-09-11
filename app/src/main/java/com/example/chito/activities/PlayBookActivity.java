@@ -11,6 +11,7 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationListener;
@@ -131,6 +132,13 @@ public class PlayBookActivity extends AppCompatActivity implements HtmlView,com.
 
     }
 
+    public static String get_book_id() {
+        return book_id;
+    }
+
+    public static String get_current_id() {
+        return String.valueOf(current_sceneId);
+    }
     @SuppressLint("MissingPermission")
     public void init() {
         //主要調配器宣告
@@ -201,6 +209,9 @@ public class PlayBookActivity extends AppCompatActivity implements HtmlView,com.
                     .build();
         }
         audioManager = (AudioManager)this.getSystemService(Context.AUDIO_SERVICE);
+        SharedPreferences spref = (SharedPreferences) getPreferences(MODE_PRIVATE);
+        int book_save = Integer.parseInt(spref.getString(book_id+"_save", "0"));
+//        showToast(book_save+"");
         startPlayBook(this,scenes_list.get(0),scenes_list);
     }
 

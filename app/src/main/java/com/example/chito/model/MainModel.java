@@ -797,7 +797,8 @@ public class MainModel {
                             cur.setLatitude(GlobalValue.Latitude);
                             cur.setLongitude(GlobalValue.Longtitude);
                             if(IsGPSClosed(dis,cur,distance)){
-                                PlayBookActivity.mp.stop();
+                                if(PlayBookActivity.mp != null)
+                                    PlayBookActivity.mp.stop();
                                 IsGpsStart = false;
                                 WebInterface.loadHtmlUrl(book_id,next_sceneId+"");
                             }

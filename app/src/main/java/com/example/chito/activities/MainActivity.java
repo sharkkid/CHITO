@@ -10,6 +10,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationManager;
@@ -53,6 +54,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static android.provider.Settings.ACTION_MANAGE_OVERLAY_PERMISSION;
+import static com.example.chito.Util.GlobalValue.book_id;
 
 public class MainActivity extends AppCompatActivity implements MainView {
     private MainPresenter mainPresenter;
@@ -168,6 +170,18 @@ public class MainActivity extends AppCompatActivity implements MainView {
                 showToast(data.getStringExtra("qr_result"));
             }
         }
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        Log.d("OnDestroy","執行銷毀");
+        SharedPreferences spref = (SharedPreferences) getPreferences(MODE_PRIVATE);
+        SharedPreferences.Editor editor = spref.edit();
+        editor.clear();
+        editor.putString(PlayBookActivity.get_book_id()+"_save",PlayBookActivity.get_current_id());
+//        editor.putString(PlayBookActivity.get_book_id()+"_save","0");
+        editor.commit();
     }
 
     @Override
