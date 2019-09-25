@@ -20,14 +20,19 @@ public class DownloadBroadcastReceiver extends BroadcastReceiver {
                 Log.d(TAG,WebActivity.booklist_isDonwloaded+"");
                 WebActivity.loadBrowseUrl();
                 WebActivity.booklist_isDonwloaded = false;
+//                WebActivity.LoadBooklist();//載入劇本清單到WebView
             }
             else if(WebInterface.playbook_isDonwloaded){
                 Log.d(TAG,WebInterface.playbook_isDonwloaded+"");
                 WebInterface.playbook_isDonwloaded_n++;
+                WebActivity.updateUI_download();
                 if(WebInterface.playbook_isDonwloaded_n == WebInterface.playbook_isDonwloaded_max) {
                     WebInterface.progressDialog.dismiss();
 //                WebActivity.loadBrowseUrl();
                     WebInterface.playbook_isDonwloaded = false;
+                    WebActivity.loadBrowseUrl();
+                    WebInterface.playbook_isDonwloaded_n = 0;
+                    WebInterface.playbook_isDonwloaded_max = 0;
                 }
                 Log.d(TAG,WebInterface.playbook_isDonwloaded_n+"");
             }

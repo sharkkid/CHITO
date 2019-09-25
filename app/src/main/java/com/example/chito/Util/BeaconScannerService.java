@@ -62,7 +62,7 @@ public class BeaconScannerService extends Service {
             public void onLeScan(final BluetoothDevice device , final int rssi ,
                                  final byte[] scanRecord) {
 //                Log.d("TAG" , "BLE device : " + device.getName());
-
+                IsBleStart = true;
                 try {
                     if (IsBleStart) {
                         beacon = new Beacon(scanRecord , device , rssi);

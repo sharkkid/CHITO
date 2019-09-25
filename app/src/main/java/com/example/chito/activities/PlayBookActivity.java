@@ -159,11 +159,11 @@ public class PlayBookActivity extends AppCompatActivity implements HtmlView,com.
         Intent intent = this.getIntent();
         //取得傳遞過來的資料
         book_id = intent.getStringExtra("book_id");
-        book_id = "1";
+//        book_id = "1";
         //解析劇本劇情
         scenes_list = new ArrayList<Map<String, String>>();
         try {
-            result = webPresenter.getFileText(Environment.getExternalStorageDirectory().getPath() + "/story_assets/s1" , "1.json");
+            result = webPresenter.getFileText(Environment.getExternalStorageDirectory().getPath() + "/story_assets/s"+book_id , book_id+".json");
             json = new JSONObject(result);
             scenes = json.getJSONArray("scenes");
             for (int i = 0; i < scenes.length(); i++) {
@@ -212,7 +212,7 @@ public class PlayBookActivity extends AppCompatActivity implements HtmlView,com.
         SharedPreferences spref = (SharedPreferences) getPreferences(MODE_PRIVATE);
         int book_save = Integer.parseInt(spref.getString(book_id+"_save", "0"));
 //        showToast(book_save+"");
-        startPlayBook(this,scenes_list.get(0),scenes_list);
+        startPlayBook(this,scenes_list.get(5),scenes_list);
     }
 
     private void updateLocation(Location location) {
@@ -384,6 +384,7 @@ public class PlayBookActivity extends AppCompatActivity implements HtmlView,com.
                                 case "timer":
                                     audio_timer = 0;
                                     IsTimerStart = true;
+//                                    Log.d("IsTimerStart" , "IsTimerStart:"+IsTimerStart);
                                     if(!webPresenter.IsMapNull(story_map, "fadeInSeconds"+i).equals(""))
                                         fadeIn[i] = Integer.parseInt(webPresenter.IsMapNull(story_map, "fadeInSeconds"+i));
                                     else
@@ -406,6 +407,7 @@ public class PlayBookActivity extends AppCompatActivity implements HtmlView,com.
                                     break;
                             }
                         }
+                        Log.d("IsTimerStart" , "IsTimerStart:"+IsTimerStart);
                         if(IsTimerStart) {
                             audio_timer_handler = new Handler();
                             final int finalTimer_max = timer_max;
@@ -427,7 +429,7 @@ public class PlayBookActivity extends AppCompatActivity implements HtmlView,com.
                                     }
                                     audio_timer_handler.postDelayed(this , 1000);
                                     audio_timer++;
-                                    if(IsBleStart){
+                                    if(GlobalValue.IsBleClosed){
                                         audio_timer_handler.removeCallbacksAndMessages(null);
                                     }
                                 }

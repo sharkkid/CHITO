@@ -67,7 +67,13 @@ public class WebInterface extends Object{
     public void Playbook_downloader(String book_id){
         progressDialog = ProgressDialog.show(context,
                 "劇本下載中", "請等待...", true);
-        new PlayBook_Downloader().execute("http://chito-test.nya.tw:3000/api/v1/playbooks/" + book_id,book_id);
+        new PlayBook_Downloader().execute("http://"+GlobalValue.url+"/api/v1/playbooks/" + book_id,book_id);
+    }
+    @JavascriptInterface
+    public void Playbook_start(String book_id){
+        Intent goweb = new Intent(context, PlayBookActivity.class);
+        goweb .putExtra("book_id",book_id);//傳遞劇本編號
+        ((Activity)context).startActivity(goweb);
     }
     @JavascriptInterface
     public void openQrScanner(String retryMessage){
@@ -134,8 +140,16 @@ public class WebInterface extends Object{
                 String str = webPresenter.toPrettyFormat(result);
                 FileOutputStream fos = null;
                 try {
-                    fos = new FileOutputStream(new File(Environment.getExternalStorageDirectory().getPath()+"/story_assets/s"+story_id+"/"+story_id+".json"));
-                    fos.write(str.getBytes());
+                    if (webPresenter.isFileExists("/story_assets/s"+ story_id, story_id+".json")) {
+                        //移除以前下載的檔案
+                        webPresenter.deleteFile("/story_assets/s" + story_id, story_id+".json");
+                        fos = new FileOutputStream(new File(Environment.getExternalStorageDirectory().getPath()+"/story_assets/s"+story_id+"/"+story_id+".json"));
+                        fos.write(str.getBytes());
+                    }
+                    else{
+                        fos = new FileOutputStream(new File(Environment.getExternalStorageDirectory().getPath()+"/story_assets/s"+story_id+"/"+story_id+".json"));
+                        fos.write(str.getBytes());
+                    }
                 }
                 catch (Exception e){
 
@@ -228,7 +242,7 @@ public class WebInterface extends Object{
         }
 
         public void file_downloader(String story_id,String assets_id,JSONArray articles,int finalI){
-            Uri uri = Uri.parse("http://chito-test.nya.tw:3000/api/v1/assets/" + assets_id);
+            Uri uri = Uri.parse("http://"+GlobalValue.url+"/api/v1/assets/" + assets_id);
             DownloadManager.Request request = new DownloadManager.Request(uri);
             try {
                 request.setDestinationInExternalPublicDir("/story_assets/s" + story_id, fileNameConverter(articles.getJSONObject(finalI).getString("contentType"), assets_id));

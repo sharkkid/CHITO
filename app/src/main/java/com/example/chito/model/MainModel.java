@@ -824,10 +824,12 @@ public class MainModel {
                 if(GlobalValue.BLE_UUID.equals(ble_data[0]) && GlobalValue.BLE_distance > Double.parseDouble(ble_data[3])){
                     Log.d("BLE","BLE not run");
                     IsBleStart = false;
+                    GlobalValue.IsBleClosed = true;
                     WebInterface.loadHtmlUrl(book_id,ble_data[4]+"");
                 }
                 else{
                     Log.d("BLE","BLE run,GlobalValue.BLE_distance="+GlobalValue.BLE_distance+",uuid="+GlobalValue.BLE_UUID);
+                    GlobalValue.IsBleClosed = false;
                     ble_sensor.postDelayed(this, 1000);
                 }
             }

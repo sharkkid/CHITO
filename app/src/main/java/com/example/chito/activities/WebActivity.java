@@ -5,11 +5,13 @@ import android.Manifest;
 import android.app.AlertDialog;
 import android.app.DownloadManager;
 import android.app.ProgressDialog;
+import android.bluetooth.BluetoothAdapter;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
 import android.net.ConnectivityManager;
 import android.net.Uri;
 import android.os.AsyncTask;
@@ -27,8 +29,10 @@ import android.webkit.WebViewClient;
 import android.widget.Toast;
 
 import com.example.chito.R;
+import com.example.chito.Util.GlobalValue;
 import com.example.chito.Util.WebInterface;
 import com.example.chito.model.MainModel;
+import com.example.chito.presenter.MainPresenter;
 import com.example.chito.presenter.WebPresenter;
 import com.example.chito.view.HtmlView;
 import com.google.gson.Gson;
@@ -47,16 +51,29 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.HashMap;
+import java.util.Map;
 
 import static android.provider.Settings.ACTION_MANAGE_OVERLAY_PERMISSION;
+import static com.example.chito.Util.GlobalValue.book_id;
 
 
 public class WebActivity extends AppCompatActivity implements HtmlView {
     private static WebPresenter webPresenter;
     public  static WebView webView;
 
-    private static ProgressDialog progressDialog;
+    public static ProgressDialog progressDialog;
     public static boolean booklist_isDonwloaded = false;
+
+    private String result="";
+    private static String book_content;
+
+    private static int book_total = 0;
+
+    private JSONObject json;
+
+    public static WebActivity act;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -70,21 +87,25 @@ public class WebActivity extends AppCompatActivity implements HtmlView {
 
         webView = findViewById(R.id.MainWebView);
 
+        //更新進度用的Context
+        act = WebActivity.this;
+
         //確認網路權限
         ConnectivityManager connectivityManager =(ConnectivityManager)getSystemService(Context.CONNECTIVITY_SERVICE);
         if(webPresenter.checkNetworkState(WebActivity.this,connectivityManager)) {
 
             //權限索取
             webPresenter.reques_permission();
-
+            webPresenter.checkStoredPermission(WebActivity.this);
             progressDialog = ProgressDialog.show(WebActivity.this,
                     "劇本清單下載中", "請等待...", true);
+//            progressDialog.setMessage("Test");
             //判斷下載後的call back
             booklist_isDonwloaded = true;
 
-
             //下載劇本清單
-            new PlayBookList_Downloader().execute("http://chito-test.nya.tw:3000/api/v1/playbooks/");
+//            new PlayBookList_Downloader().execute("http://"+ GlobalValue.url +"/api/v1/playbooks/");
+            new PlayBookList_Downloader().execute("http://192.168.13.113/CHITO/playbooks_test.php");
             WebSettings webSettings = webView.getSettings();
 
             // 设置与Js交互的权限
@@ -96,15 +117,43 @@ public class WebActivity extends AppCompatActivity implements HtmlView {
             // 加载JS代码
             // 格式规定为:file:///android_asset/文件名.html
 //        webView.loadUrl("file:///android_asset/www/browse.html");
-//        webView.setWebViewClient(new WebViewClient()
-//        {
-//            @Override
-//            public void onPageFinished(WebView view, String url)
+//            webView.setWebViewClient(new WebViewClient()
 //            {
-//                super.onPageFinished(view, url);
-//                webView.loadUrl("javascript:callJS(\"測試測試\")");
-//            }
-//        });
+//                @Override
+//                public void onPageFinished(WebView view, String url)
+//                {
+//                    super.onPageFinished(view, url);
+//                    webView.loadUrl("javascript:send_playbook_list_total(\"測試測試\")");//調用Webview上的js處理劇本清單
+//                }
+//            });
+
+            try {
+                result = webPresenter.getFileText(Environment.getExternalStorageDirectory().getPath() + "/story_assets/playbook_list" , "playbook.json");
+                json = new JSONObject(result);
+                book_total = json.getJSONArray("payloads").length();
+                String readytosend = "";
+                for(int i = 0;i<json.getJSONArray("payloads").length();i++){
+                    String id = json.getJSONArray("payloads").getJSONObject(i).getString("id");
+                    String title = json.getJSONArray("payloads").getJSONObject(i).getString("title");
+                    String description = json.getJSONArray("payloads").getJSONObject(i).getString("description");
+                    String categories = json.getJSONArray("payloads").getJSONObject(i).getString("categories");
+                    int IsDownloaded = 0;
+                    if(webPresenter.isFileExists("/story_assets/s"+id,id+".json"))
+                        IsDownloaded = 1;
+                    else
+                        IsDownloaded = 0;
+                    readytosend += id+","+IsDownloaded+","+title+","+description+","+"0"+"|";
+                }
+                readytosend = readytosend.substring(0, readytosend.length()-1);
+                book_content = readytosend;
+                Log.d("list", readytosend);
+//                Log.d("list", json.getJSONArray("payloads").getJSONObject(0).getString("id"));
+            } catch (IOException e) {
+                e.printStackTrace();
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+
         }
         else{
 //            webPresenter.showToast("請開啟網路連線,再重新啟動App！");
@@ -151,10 +200,22 @@ public class WebActivity extends AppCompatActivity implements HtmlView {
             public void onPageFinished(WebView view, String url)
             {
                 super.onPageFinished(view, url);
-                webView.loadUrl("javascript:callJS(\"測試測試\")");
+                webView.loadUrl("javascript:send_playbook_list_total("+book_total+",\""+book_content+"\")");//調用Webview上的js處理劇本清單
+//                webView.loadUrl("javascript:callJS(\"測試測試\")");
             }
         });
         progressDialog.dismiss();
+    }
+
+    public static void updateUI_download(){
+        act.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                double downloaded_percentage = (WebInterface.playbook_isDonwloaded_n*100) / WebInterface.playbook_isDonwloaded_max;
+                Log.d("進度",downloaded_percentage+",最大值="+WebInterface.playbook_isDonwloaded_max);
+                WebInterface.progressDialog.setMessage("已下載:"+downloaded_percentage+"%");
+            }
+        });
     }
 
     @Override
@@ -179,16 +240,37 @@ public class WebActivity extends AppCompatActivity implements HtmlView {
             //没有 ACCESS_FINE_LOCATION 权限
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, webPresenter.ACCESS_FINE_LOCATION_CODE);
         }
-        if (!Settings.canDrawOverlays(WebActivity.this)) {
+
+        if(!Settings.canDrawOverlays(WebActivity.this)) {
             AlertDialog.Builder dialog = new AlertDialog.Builder(WebActivity.this);
             dialog.setTitle("權限請求!");
             dialog.setMessage("請允許本程式可懸浮權限!");
-            dialog.setPositiveButton("前往", new DialogInterface.OnClickListener() {
+            dialog.setPositiveButton("前往",new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface arg0, int arg1) {
                     // TODO Auto-generated method stub
-                    Intent enableIntent = new Intent(ACTION_MANAGE_OVERLAY_PERMISSION);
-                    startActivityForResult(enableIntent, webPresenter.OVERLAY_PERMISSION_REQ_CODE);
+                    Intent enableIntent = new Intent( ACTION_MANAGE_OVERLAY_PERMISSION );
+                    startActivityForResult( enableIntent, webPresenter.OVERLAY_PERMISSION_REQ_CODE );
+                }
+            });
+            dialog.show();
+        }
+        if(!webPresenter.checkGpsStatus(this)){
+            AlertDialog.Builder dialog = new AlertDialog.Builder(this);
+            dialog.setTitle("GPS定位權限請求!");
+            dialog.setMessage("請允許本程式GPS定位權限!");
+            dialog.setPositiveButton("前往",new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface arg0, int arg1) {
+                    // TODO Auto-generated method stub
+                    Intent enableIntent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS );
+                    startActivityForResult( enableIntent, MainPresenter.ACCESS_COARSE_LOCATION );
+                }
+            });
+            dialog.setNegativeButton("拒絕",new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface arg0, int arg1) {
+                    // TODO Auto-generated method stub
                 }
             });
             dialog.show();
@@ -313,4 +395,46 @@ public class WebActivity extends AppCompatActivity implements HtmlView {
             return result;
         }
     }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
+        switch (requestCode) {
+            case MainPresenter.ACCESS_FINE_LOCATION_CODE:
+                if (grantResults.length > 0
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    // 申请同意
+                } else {
+                    //申请拒绝
+                    Toast.makeText(this, "您已拒絕位置權限，將無法搜尋Beacon!", Toast.LENGTH_SHORT).show();
+                }
+                break;
+            case MainPresenter.REQUEST_ENABLE_BT_CODE:
+                Map<String, Integer> perms = new HashMap<String, Integer>();
+                // Initial
+                perms.put(Manifest.permission.ACCESS_FINE_LOCATION, PackageManager.PERMISSION_GRANTED);
+                // Fill with results
+                for (int i = 0; i < permissions.length; i++)
+                    perms.put(permissions[i], grantResults[i]);
+                // Check for ACCESS_FINE_LOCATION
+                if (perms.get(Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
+
+                ) {
+                    // 申请同意
+                } else {
+                    //申请拒绝
+                    webPresenter.showToast("位置權限已拒絕!");
+                }
+                break;
+            case MainPresenter.ACCESS_COARSE_LOCATION:
+                if (grantResults.length > 0
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    // 申请同意
+                } else {
+                    //申请拒绝
+                    Toast.makeText(this, "您已拒絕GPS定位權限，將無法搜尋GPS!", Toast.LENGTH_SHORT).show();
+                }
+                break;
+        }
+    }
+
 }

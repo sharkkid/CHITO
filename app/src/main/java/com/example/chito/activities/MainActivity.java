@@ -146,7 +146,6 @@ public class MainActivity extends AppCompatActivity implements MainView {
             public void onClick(View v) {
                 Intent goweb = new Intent(MainActivity.this, PlayBookActivity.class);
                 goweb .putExtra("book_id","1");//傳遞劇本編號
-
                 startActivity(goweb);
 //                Intent goweb = new Intent(MainActivity.this, FakeCallActivity.class);
 //                startActivity(goweb);

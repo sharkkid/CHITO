@@ -1,0 +1,140 @@
+body {
+  margin: 0;
+  padding-top: 9.3vw;
+  padding-bottom: 13.33vw; }
+
+body > header {
+  position: fixed;
+  background: #EAEEF0;
+  width: 100%;
+  top: 0;
+  left: 0;
+  padding-top: 1.6vw;
+  min-height: 7.7vw;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0.53vw 1.066vw 0 rgba(0, 0, 0, 0.16);
+  z-index: 1000;
+  letter-spacing: 0.232vw;
+  font-size: 3.466vw; }
+  body > header a.right {
+    position: absolute;
+    right: 7.46vw;
+    top: 2.9vw;
+    display: block;
+    width: 4.26vw;
+    height: 4.26vw;
+    padding: 1.33vw;
+    background-clip: content-box;
+    background: url("../images/account-c9e5aa51.svg") no-repeat center/4.266vw; }
+
+body > footer.tabs {
+  position: fixed;
+  width: 100%;
+  height: 13.33vw;
+  z-index: 1000;
+  bottom: 0;
+  left: 0;
+  background: #EAEEF0;
+  display: flex; }
+  body > footer.tabs > a {
+    flex-grow: 1;
+    flex-basis: 1;
+    background-size: 6.66vw;
+    background-repeat: no-repeat;
+    background-position: center center; }
+    body > footer.tabs > a.browse {
+      background-image: url("../images/icon_tab_browse-c4181ca7.svg"); }
+      body > footer.tabs > a.browse.active {
+        background-image: url("../images/icon_tab_browse_active-624e7ac0.svg"); }
+    body > footer.tabs > a.liked {
+      background-image: url("../images/icon_tab_liked-ee30875a.svg"); }
+      body > footer.tabs > a.liked.active {
+        background-image: url("../images/icon_tab_liked_active-1536aec2.svg"); }
+    body > footer.tabs > a.downloaded {
+      background-image: url("../images/icon_tab_downloaded-d3f7f641.svg"); }
+      body > footer.tabs > a.downloaded.active {
+        background-image: url("../images/icon_tab_downloaded_active-41c8e4a9.svg"); }
+    body > footer.tabs > a.search {
+      background-image: url("../images/icon_tab_search-cbea9032.svg"); }
+      body > footer.tabs > a.search.active {
+        background-image: url("../images/icon_tab_search_active-fd558f55.svg"); }
+
+article.entry {
+  display: flex;
+  background: #F5F5F5; }
+  article.entry .thumbnail {
+    width: 29.33vw;
+    height: 27.2vw;
+    flex-grow: 0;
+    flex-shrink: 0;
+    background-size: cover; }
+  article.entry .meta {
+    flex-grow: 1;
+    padding: 2.933vw 4.533vw; }
+    article.entry .meta .title {
+      font-size: 4.266vw; }
+    article.entry .meta .description {
+      margin-top: 1.866vw;
+      color: #939393;
+      font-size: 3.733vw;
+      line-height: 1.42; }
+  article.entry .actions {
+    flex-grow: 0;
+    flex-shrink: 0;
+    width: 11.46vw;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    margin: 4vw 0; }
+    article.entry .actions > a {
+      border-top: 1px solid #4EE3ED;
+      border-left: 1px solid #4EE3ED;
+      border-bottom: 1px solid #4EE3ED;
+      border-top-left-radius: 1.066vw;
+      border-bottom-left-radius: 1.066vw;
+      height: 8vw;
+      background-repeat: no-repeat;
+      background-size: 3.92vw;
+      background-position: center 1.866vw; }
+      article.entry .actions > a:not(:last-child) {
+        margin-bottom: 1.866vw; }
+      article.entry .actions > a.undo {
+        border-color: #CDCDCD; }
+      article.entry .actions > a.like {
+        background-image: url("../images/icon_like-5f289f26.svg"); }
+      article.entry .actions > a.download {
+        background-image: url("../images/icon_download-9bbfe73e.svg"); }
+      article.entry .actions > a.undo.like {
+        background-image: url("../images/icon_undo_like-cee71d51.svg"); }
+      article.entry .actions > a.undo.download {
+        background-image: url("../images/icon_undo_download-89f1fb0a.svg"); }
+
+main > section header {
+  font-size: 4.26vw;
+  min-height: 9.56vw;
+  padding: 0 4.26vw;
+  display: flex;
+  align-items: center; }
+  main > section header .small {
+    margin-left: 2.266vw;
+    font-size: 2.93vw;
+    color: #6F6F6F; }
+
+main > section article.entry:not(:last-child) {
+  margin-bottom: 0.8vw; }
+
+article.featured {
+  height: 55.466vw;
+  position: relative;
+  overflow: hidden;
+  background-size: cover; }
+  article.featured header {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    background: rgba(255, 255, 255, 0.85);
+    padding: 1.86vw 4.26vw 1.421vw;
+    font-size: 3.733vw; }

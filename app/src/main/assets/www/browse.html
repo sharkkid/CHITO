@@ -1,225 +1,141 @@
 <!DOCTYPE html>
 <html>
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="generator" content="RocketCake">
-    <title></title>
-    <link rel="stylesheet" type="text/css" href="browse_html.css">
-  <script>
+  <head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width,initial-scale=1.0,user-scalable=no" name="viewport" />
+    <link href="stylesheets/browse-94a09320.css" rel="stylesheet" />
+  </head>
+  <body>
+    <header>
+      <div class="page-title">
+        瀏覽
+      </div>
+      <a class="right user button" href="#"></a>
+    </header>
+    <main>
+  <!--       <article class="featured" style="background-image: url(/storage/emulated/0/story_assets/playbook_list/icon_1.png)">
+          <header>
+            劇情列表
+          </header>
+        </article> -->
+      <section id="list_container">
+<!--         <header>
+          台北
+          <div class="small">
+            城市之旅／文化深度體驗
+          </div>
+        </header> -->
+<!--         <article class="entry">
+          <div class="thumbnail" style="background-image: url(/storage/emulated/0/story_assets/playbook_list/icon_1.png)"></div>
+          <div class="meta">
+            <div class="title">
+              爺奶攪藝術
+            </div>
+            <div class="description">
+              和爺奶展開藝術的探索旅程＃共融藝術
+            </div>
+          </div>
+          <div class="actions">
+            <a class="like" href="#"></a>
+            <a class="download" href="#" onclick="javascript:playbook_downloader(1)"></a>
+          </div>
+        </article> -->
+      </section>
+      <section>
+        <header>
+          更多推薦故事
+        </header>
+        <article class="entry">
+          <div class="thumbnail" style="background-image: url(images/demo/featured-77999b4f.png)"></div>
+          <div class="meta">
+            <div class="title" id="test">
+              爺奶攪藝術
+            </div>
+            <div class="description">
+              和爺奶展開藝術的探索旅程＃共融藝術
+            </div>
+          </div>
+          <div class="actions">
+            <a class="like" href="#"></a><a class="download" href="#"></a>
+          </div>
+        </article>
+      </section></main>
+    <footer class="tabs">
+      <a class="browse active" href="browse.html"></a>
+      <a class="liked" href="liked.html"></a>
+      <a class="downloaded" href="downloaded.html"></a>
+      <a class="search" href="search.html"></a>
+    </footer>
+  </body>
+      <script>
       function callAndroid(){
-      // 由于对象映射，所以调用test对象等于调用Android映射的对象
         Chito.ShowToast("js调用了android中的hello方法");
       }
 
+      function callJS(text){
+        Chito.ShowToast(text);
+      }
+
       function playbook_downloader(playbook_n){
-      // 由于对象映射，所以调用test对象等于调用Android映射的对象
+      //劇本下載
         Chito.Playbook_downloader(playbook_n);
       }
-
-      function send_playbook_list_total(value) {
-        document.querySelector('#playbook_list_n').innerHTML = value;
+       function Playbook_start(playbook_n){
+      //開啟劇本
+        Chito.Playbook_start(playbook_n);
       }
-  </script
-</head>
-<body>
-<div class="textstyle1">
-<div id="container_6dc7642a"><div id="container_6dc7642a_padding"><div class="textstyle1"><div id="container_35965677"><div class="textstyle1"><div id="container_5271cb71"><div id="container_5271cb71_padding"><div class="textstyle1"><div id="container_50693a0d"><div id="container_50693a0d_padding"><div class="textstyle1">  <h1 id="heading_71742726">
-    <div class="textstyle1">
-      <span class="textstyle2">瀏覽</span>
-      </div>
-    </h1>
-</div>
-<div style="clear:both"></div></div></div><div id="container_91ac625"><div class="textstyle1"></div>
-<div class="textstyle3"><a href="account.html"><img src="rc_images/icon__.png" id="img_232424b1" alt="" title="" border="0"></a>
-</div>
-</div></div>
-<div style="clear:both"></div></div></div></div>
-</div><div id="container_19d801ec"><div class="textstyle1"><a href="intropage.html"><img src="rc_images/banner__1_.png" id="img_4d42a83f" alt="" title="" border="0"></a>
-</div>
-</div><span class="textstyle4"><br></span><h1 id="heading_322e3c6f"><div class="textstyle1">  <span class="textstyle5">臺北</span>
-</div>
-</h1><span class="textstyle4"><br></span><div id="container_7330b34f"><div id="container_7330b34f_padding"><div class="textstyle1"><h2 id="heading_450824da"><div class="textstyle1">  <span class="textstyle6">城市之旅</span>
-</div>
-</h2><span class="textstyle4"><br></span><h2 id="heading_7d7f79dd"><div class="textstyle1">  <span class="textstyle7">文化深度體驗</span>
-</div>
-</h2>
 
-<div id="container_5e11d928"><div id="container_5e11d928_padding"><div class="textstyle1">
-  <div id="container_b0df8f6">
-    <div id="container_b0df8f6_padding">
-      <div class="textstyle1">
-        <div id="container_29067862">
-          <div id="container_29067862_padding">
-            <div class="textstyle1">
-              <a href="intropage.html">
-                <img src="/storage/emulated/0/story_assets/playbook_list/icon_1.png" id="img_4f98b62" alt="" title="" border="0">
-              </a>
-</div>
-</div></div><div id="container_584e5d40">
-  <div id="container_584e5d40_padding">
-    <div class="textstyle1">  <h3 id="heading_41e5572d">
-    <div class="textstyle1">
-      <span class="textstyle8">少年待在立法院的那幾天</span>
-      </div>
-    </h3>
-  <span class="textstyle9">這是一個以手機作為載體的節目，內容為一個少年參與太陽花學運的內部工作</span>
-</div>
+      function send_playbook_list_total(total,booklist_info) {        
+        // document.getElementById("test").innerHTML = document.getElementById("list_container").childElementCount;
+        var i;
+        var book_info_split = booklist_info.split("|");
+        var book_info = new Array();
+        for(var k=0;k<total;k++){ //一維長度為i,i為變數，可以根據實際情況改變
+        book_info[k]=new Array(); //宣告二維，每一個一維陣列裡面的一個元素都是一個陣列；
+          for(var j=0;j<5;j++){ //一維陣列裡面每個元素陣列可以包含的數量p，p也是一個變數；
+            book_info[k][j]=""; //這裡將變數初始化，我這邊統一初始化為空，後面在用所需的值覆蓋裡面的值
+          }
+        }
+        var container = document.getElementById("list_container");
+        for (i = 0; i < total; i++) {
+          var book_info_temp = book_info_split[i].split(',');
+          book_info[i][0] = book_info_temp[0];// book_id
+          book_info[i][1] = book_info_temp[1];// 確認是否下載的旗標
+          book_info[i][2] = book_info_temp[2];// book_title
+          book_info[i][3] = book_info_temp[3];// book_describtion
+          book_info[i][4] = book_info_temp[4];// 確認是否愛心的旗標
+        }
+        var playbook = "";
+        for (i = 0; i < total; i++) {
+          
+          // playbook.setAttribute("class","entry");
+          var id=book_info[i][0];
+          var download_flag = "";
+          var title=book_info[i][2];
+          var description=book_info[i][3];
+          var like_flag = "";
+          var action = "";
 
-</div></div><div id="container_1bb6b284">
-  <div id="container_1bb6b284_padding">
-  <div class="textstyle1"></div>
-    <div class="textstyle3">
-      <div id="button_34042f14">
-        <div class="vcenterstyle1">
-          <div class="vcenterstyle2">      
-            <div class="textstyle10">
-              <span class="textstyle4">關注</span>
-            </div>
-          </div>
-        </div>
-      </div>
-  </div>
-<div class="textstyle1"><span class="textstyle4"><br><br></span>
-</div>
-<div class="textstyle3"><div id="button_734c9320">
-    <div class="vcenterstyle1">
-      <div class="vcenterstyle2">
-        <div class="textstyle10">
-          <a href="#">
-            <span onclick="javascript:playbook_downloader(1)">下載</span>
-          </a>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-</div></div></div>
-</div></div>
-
-<div id="container_76d795b9">
-  <div id="container_76d795b9_padding">
-    <div class="textstyle1">
-      <div id="container_54726d48">
-        <div id="container_54726d48_padding">
-          <div class="textstyle1">
-            <a href="intropage.html">
-              <img src="rc_images/_____2019_06_12___12_15_11.png" id="img_4b551ac5" alt="" title="" border="0"></a>
-          </div>
-</div>
-</div><div id="container_60bb6fa5"><div id="container_60bb6fa5_padding"><div class="textstyle1">  <h3 id="heading_656daaa9">
-    <div class="textstyle1">
-      <span class="textstyle8">咖哩骨遊記</span>
-      </div>
-    </h3>
-  <span class="textstyle4"><br></span>
-  <span class="textstyle9">這是一個以手機作為載體的節目，內容為一個少年參與太陽花學運的內部工作</span>
-</div>
-<div style="clear:both"></div></div></div><div id="container_3faec19a"><div id="container_3faec19a_padding"><div class="textstyle1"></div>
-<div class="textstyle3">  <div id="button_4e35183a">
-    <div class="vcenterstyle1"><div class="vcenterstyle2">      <div class="textstyle10">
-        <span class="textstyle4">關注</span>
-        </div>
-      </div></div>
-    </div>
-</div>
-<div class="textstyle1">  <span class="textstyle4"><br><br></span>
-</div>
-<div class="textstyle3">  <div id="button_7793ad5">
-    <div class="vcenterstyle1"><div class="vcenterstyle2">      <div class="textstyle10">
-        <span class="textstyle4">下載</span>
-        </div>
-      </div></div>
-    </div>
-</div>
-
-</div></div></div>
-</div></div>
-
-<!-- 更多推薦故事分層 -->
-
-</div>
-<div style="clear:both"></div></div></div></div>
-<div style="clear:both"></div></div></div><h1 id="heading_7d6e0e94"><div class="textstyle1">  <span class="textstyle5">更多推薦故事</span>
-</div>
-</h1><span class="textstyle4"><br></span><div id="container_78d6203e"><div id="container_78d6203e_padding"><div class="textstyle1"><div id="container_25bd00f2"><div id="container_25bd00f2_padding"><div class="textstyle1"><div id="container_b61e83"><div id="container_b61e83_padding"><div class="textstyle1"><div id="container_146acaae"><div id="container_146acaae_padding"><div class="textstyle1"><a href="intropage.html"><img src="rc_images/_____2019_06_12___12_14_23.png" id="img_70dfcd45" alt="" title="" border="0"></a>
-</div>
-<div style="clear:both"></div></div></div><div id="container_36889197"><div id="container_36889197_padding"><div class="textstyle1">  <h3 id="heading_113dc287">
-    <div class="textstyle1">
-      <span class="textstyle8">九號碼頭塗鴉牆</span>
-      </div>
-    </h3>
-  <span class="textstyle9">這是一個以手機作為載體的節目，內容為一個少年參與太陽花學運的內部工作</span>
-</div>
-<div style="clear:both"></div></div></div><div id="container_4b711abb"><div id="container_4b711abb_padding"><div class="textstyle1"></div>
-<div class="textstyle3">  <div id="button_45953828">
-    <div class="vcenterstyle1"><div class="vcenterstyle2">      <div class="textstyle10">
-        <span class="textstyle4">關注</span>
-        </div>
-      </div></div>
-    </div>
-</div>
-<div class="textstyle1">  <span class="textstyle4"><br><br></span>
-</div>
-<div class="textstyle3">  <div id="button_40bf1b19">
-    <div class="vcenterstyle1"><div class="vcenterstyle2">      <div class="textstyle10">
-        <span class="textstyle4">下載</span>
-        </div>
-      </div></div>
-    </div>
-</div>
-<div style="clear:both"></div></div></div></div>
-<div style="clear:both"></div></div></div></div>
-<div style="clear:both"></div></div></div><div id="container_1ee7d79d"><div id="container_1ee7d79d_padding"><div class="textstyle1"><div id="container_3e8d9aab"><div id="container_3e8d9aab_padding"><div class="textstyle1"><div id="container_4b8833a"><div id="container_4b8833a_padding"><div class="textstyle1"><img src="rc_images/_____2019_06_12___12_14_44.png" id="img_3ae7ee26" alt="" title="">
-</div>
-<div style="clear:both"></div></div></div><div id="container_4a51962e"><div id="container_4a51962e_padding"><div class="textstyle1">  <h3 id="heading_4c4ecec7">
-    <div class="textstyle1">
-      <span class="textstyle8">女同志在90年代</span>
-      </div>
-    </h3>
-  <span class="textstyle9">這是一個以手機作為載體的節目，內容為一個少年參與太陽花學運的內部工作</span>
-</div>
-<div style="clear:both"></div></div></div><div id="container_798fb160"><div id="container_798fb160_padding"><div class="textstyle1"></div>
-<div class="textstyle3">  <div id="button_40bc1880">
-    <div class="vcenterstyle1"><div class="vcenterstyle2">      <div class="textstyle10">
-        <span class="textstyle4">關注</span>
-        </div>
-      </div></div>
-    </div>
-</div>
-<div class="textstyle1">  <span class="textstyle4"><br><br></span>
-</div>
-<div class="textstyle3">  <div id="button_579f572f">
-    <div class="vcenterstyle1"><div class="vcenterstyle2">      <div class="textstyle10">
-        <span class="textstyle4">下載</span>
-        </div>
-      </div></div>
-    </div>
-</div>
-
-
-<div style="clear:both"></div></div></div></div>
-<div style="clear:both"></div></div></div></div>
-<div style="clear:both"></div></div></div></div>
-<div style="clear:both"></div></div></div><span class="textstyle4"><br></span></div>
-<div style="clear:both"></div></div></div>
-
-<div id="container_78055da2"><div id="container_78055da2_padding"><div class="textstyle1"><div id="container_3578321b"><div class="textstyle1"><div id="container_c31bbfd"><div id="container_c31bbfd_padding"><div class="textstyle1"><div id="container_517c0d28"><div id="container_517c0d28_padding"><div class="textstyle1"></div>
-<div class="textstyle10"><img src="rc_images/browse.png" id="img_7d022765" alt="" title="">
-</div>
-<div style="clear:both"></div></div></div><div id="container_7e041a8c"><div id="container_7e041a8c_padding"><div class="textstyle1"></div>
-<div class="textstyle10"><a href="like.html"><img src="rc_images/like.png" id="img_7af4dfa0" alt="" title="" border="0"></a>
-</div>
-<div style="clear:both"></div></div></div><div id="container_8884fa5"><div id="container_8884fa5_padding"><div class="textstyle1"></div>
-<div class="textstyle10"><a href="download.html"><img src="rc_images/download.png" id="img_53fe67b0" alt="" title="" border="0"></a>
-</div>
-<div style="clear:both"></div></div></div><div id="container_5be0ad15"><div id="container_5be0ad15_padding"><div class="textstyle1"></div>
-<div class="textstyle10"><a href="search.html"><img src="rc_images/search.png" id="img_12dee79e" alt="" title="" border="0"></a>
-</div>
-<div style="clear:both"></div></div></div></div>
-<div style="clear:both"></div></div></div></div>
-</div></div>
-<div style="clear:both"></div></div></div>  </div>
-</body>
+          if(book_info[i][1] == "0"){
+            download_flag = "undo download";
+            action = "playbook_downloader";
+          }
+          else{
+            download_flag = "download";
+            action = "Playbook_start";
+          }
+          if(book_info[i][4] == "0")
+            like_flag = "undo like";
+          else
+            like_flag = "like";
+  
+          playbook +='<article class="entry"><div class="thumbnail" style="background-image: url(/storage/emulated/0/story_assets/playbook_list/icon_'+id+'.png)"></div><div class="meta"><div class="title">'+title+'</div><div class="description">'+description+'</div></div> <div class="actions"><a class="'+like_flag+'" href="#" onclick="java{script:qq()"></a><a class="'+download_flag+'" href="#" onclick="javascript:'+action+'('+id+')"></a></div></article>';
+          // console.log(playbook);
+        }
+        // if(container.childElementCount == 0){
+           container.innerHTML = playbook;
+        // }
+      }
+      // send_playbook_list_total(2,"1,1,test1,test1,0|2,0,test2,test2,1");
+  </script>
 </html>

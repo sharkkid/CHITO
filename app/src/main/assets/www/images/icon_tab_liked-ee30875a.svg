@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="30px" height="30px" viewBox="0 0 30 30" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 52.5 (67469) - http://www.bohemiancoding.com/sketch -->
+    <title>Artboard</title>
+    <desc>Created with Sketch.</desc>
+    <g id="Artboard" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M25.5412648,11.1770042 C25.586948,10.7669364 25.6000004,10.5137072 25.6000004,10.5137072 C25.6000004,6.9178533 23.6503063,4 20.4541131,4 C17.25792,4 14.6670294,6.9178533 14.6670294,10.5137072 C14.6670294,6.9178533 12.0777704,4 8.88157724,4 C5.68538412,4 4,6.9178533 4,10.5137072 C4,10.5137072 4.01305235,10.7669364 4.05873556,11.178638 C4.08973488,11.5021178 4.13052346,11.8190627 4.20067981,12.1245714 C4.77171993,15.3512009 10.325493,19.6446603 14.6670294,25.826719 C19.7068664,19.5237638 24.8282804,15.3512009 25.3993206,12.1245714 C25.4711085,11.8190627 25.5102655,11.5004841 25.5412648,11.1770042 Z" id="like/button" stroke="#000000" stroke-width="1.4"></path>
+    </g>
+</svg>
