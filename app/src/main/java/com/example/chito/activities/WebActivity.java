@@ -104,8 +104,8 @@ public class WebActivity extends AppCompatActivity implements HtmlView {
             booklist_isDonwloaded = true;
 
             //下載劇本清單
-//            new PlayBookList_Downloader().execute("http://"+ GlobalValue.url +"/api/v1/playbooks/");
-            new PlayBookList_Downloader().execute("http://192.168.13.113/CHITO/playbooks_test.php");
+            new PlayBookList_Downloader().execute("http://"+ GlobalValue.url +"/api/v1/playbooks/");
+//            new PlayBookList_Downloader().execute("http://chito-test.nya.tw:3000/CHITO/playbooks_test.php");
             WebSettings webSettings = webView.getSettings();
 
             // 设置与Js交互的权限
@@ -136,6 +136,9 @@ public class WebActivity extends AppCompatActivity implements HtmlView {
                     String id = json.getJSONArray("payloads").getJSONObject(i).getString("id");
                     String title = json.getJSONArray("payloads").getJSONObject(i).getString("title");
                     String description = json.getJSONArray("payloads").getJSONObject(i).getString("description");
+                    if(description == null){
+                        Log.d("description","description=null");
+                    }
                     String categories = json.getJSONArray("payloads").getJSONObject(i).getString("categories");
                     int IsDownloaded = 0;
                     if(webPresenter.isFileExists("/story_assets/s"+id,id+".json"))
@@ -339,25 +342,32 @@ public class WebActivity extends AppCompatActivity implements HtmlView {
                 final JSONArray payloads = json.getJSONArray("payloads");
                 for(int i = 0;i < json.getJSONArray("payloads").length() ; i++) {
                     final String assets_id = payloads.getJSONObject(i).getString("id");
-                    final String thumbnail_url = payloads.getJSONObject(i).getString("thumbnail_url");
-                    new Thread(new Runnable() {
-                        @Override
-                        public void run() {
-                            //確認是否擁有權限下載
-                            if (webPresenter.checkStoredPermission(WebActivity.this)) {
-                                //確認是否以前下載過,有的話先移除在下載
-                                if(webPresenter.isFileExists("/story_assets/playbook_list","icon_" + assets_id + ".png")){
-                                    //移除以前下載的檔案
-                                    webPresenter.deleteFile("/story_assets/playbook_list","icon_" + assets_id + ".png");
-                                    webPresenter.file_downloader(thumbnail_url,assets_id);
-                                }
-                                else{
-                                    webPresenter.file_downloader(thumbnail_url,assets_id);
-                                }
+                    Log.d("thumbnail","url="+payloads.getJSONObject(i).getString("thumbnailUrl"));
+                    if (payloads.getJSONObject(i).has("thumbnailUrl") && !payloads.getJSONObject(i).isNull("thumbnailUrl")) {
+                        final String thumbnail_url = payloads.getJSONObject(i).getString("thumbnailUrl");
+                        Log.d("thumbnail","thumbnail_url="+thumbnail_url);
+                        new Thread(new Runnable() {
+                            @Override
+                            public void run() {
+                                //確認是否擁有權限下載
+                                if (webPresenter.checkStoredPermission(WebActivity.this)) {
+                                    //確認是否以前下載過,有的話先移除在下載
+                                    if (webPresenter.isFileExists("/story_assets/playbook_list" , "icon_" + assets_id + ".png")) {
+                                        //移除以前下載的檔案
+                                        webPresenter.deleteFile("/story_assets/playbook_list" , "icon_" + assets_id + ".png");
+                                        webPresenter.file_downloader(thumbnail_url , assets_id);
+                                    } else {
+                                        webPresenter.file_downloader(thumbnail_url , assets_id);
+                                    }
 
+                                }
                             }
-                        }
-                    }).start();
+                        }).start();
+                    }
+                    if(i == json.getJSONArray("payloads").length()-1) {
+                        Log.d("i","i="+i);
+                        loadBrowseUrl();
+                    }
                 }
             } catch (JSONException e) {
                 e.printStackTrace();

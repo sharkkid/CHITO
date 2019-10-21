@@ -5,7 +5,7 @@ import android.util.ArrayMap;
 import java.util.Map;
 
 public class GlobalValue {
-    public static String url = "chito-test.nya.tw:3000";
+    public static String url = "rico.loli.tw:3100";
     public static String book_id = "";
     public static String BLE_UUID = "";
     public static String flag_sceneId = "";

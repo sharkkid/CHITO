@@ -17,7 +17,7 @@ public class DownloadBroadcastReceiver extends BroadcastReceiver {
         String action = intent.getAction();
         if (DownloadManager.ACTION_DOWNLOAD_COMPLETE.equals(action)) {
             if(WebActivity.booklist_isDonwloaded){
-                Log.d(TAG,WebActivity.booklist_isDonwloaded+"");
+                Log.d(TAG,"booklist_isDonwloaded="+WebActivity.booklist_isDonwloaded+"");
                 WebActivity.loadBrowseUrl();
                 WebActivity.booklist_isDonwloaded = false;
 //                WebActivity.LoadBooklist();//載入劇本清單到WebView

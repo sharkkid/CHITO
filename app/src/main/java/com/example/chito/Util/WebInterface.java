@@ -67,6 +67,7 @@ public class WebInterface extends Object{
     public void Playbook_downloader(String book_id){
         progressDialog = ProgressDialog.show(context,
                 "劇本下載中", "請等待...", true);
+        Log.d("playbook_url","url=http://"+GlobalValue.url+"/api/v1/playbooks/"+ book_id);
         new PlayBook_Downloader().execute("http://"+GlobalValue.url+"/api/v1/playbooks/" + book_id,book_id);
     }
     @JavascriptInterface
@@ -135,6 +136,7 @@ public class WebInterface extends Object{
         @Override
         protected void onPostExecute(String result) {
             try {
+                Log.d("result","result="+result);
                 final JSONObject json = new JSONObject(result);
                 final String story_id = json.getString("backgroundSceneId");
                 String str = webPresenter.toPrettyFormat(result);
