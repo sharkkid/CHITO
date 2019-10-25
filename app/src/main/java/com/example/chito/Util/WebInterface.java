@@ -200,17 +200,33 @@ public class WebInterface extends Object{
             InputStream inputStream = null;
             String result = "";
             try {
-                // create HttpClient
-                HttpClient httpclient = new DefaultHttpClient();
-                // make GET request to the given URL
-                HttpResponse httpResponse = httpclient.execute(new HttpGet(url+id));
-                // receive response as inputStream
-                inputStream = httpResponse.getEntity().getContent();
-                // convert inputstream to string
-                if(inputStream != null)
-                    result = convertInputStreamToString(inputStream);
-                else
-                    result = "Did not work!";
+//                // create HttpClient
+//                HttpClient httpclient = new DefaultHttpClient();
+//                // make GET request to the given URL
+//                HttpResponse httpResponse = httpclient.execute(new HttpGet(url+id));
+//                // receive response as inputStream
+//                inputStream = httpResponse.getEntity().getContent();
+//                // convert inputstream to string
+//                if(inputStream != null)
+//                    result = convertInputStreamToString(inputStream);
+//                else
+//                    result = "Did not work!";
+                HttpClient client = new DefaultHttpClient();
+                HttpGet request = new HttpGet(url);
+
+                HttpResponse response = client.execute(request);
+
+
+                BufferedReader rd = new BufferedReader(
+                        new InputStreamReader(response.getEntity().getContent()));
+
+                StringBuffer result2 = new StringBuffer();
+                String line ="";
+                while ((line = rd.readLine())!= null) {
+                    result2.append(line);
+                }
+                result = result2.toString()
+                ;
             } catch (Exception e) {
                 Log.d("InputStream", e.getLocalizedMessage());
             }

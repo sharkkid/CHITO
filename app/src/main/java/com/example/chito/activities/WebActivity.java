@@ -95,7 +95,7 @@ public class WebActivity extends AppCompatActivity implements HtmlView {
     @Override
     protected void onResume() {
         super.onResume();
-
+        act = WebActivity.this;
         ConnectivityManager connectivityManager =(ConnectivityManager)getSystemService(Context.CONNECTIVITY_SERVICE);
         if(webPresenter.checkNetworkState(WebActivity.this,connectivityManager)) {
             webPresenter.checkStoredPermission(WebActivity.this);
@@ -236,7 +236,7 @@ public class WebActivity extends AppCompatActivity implements HtmlView {
             public void run() {
                 double downloaded_percentage = (WebInterface.playbook_isDonwloaded_n*100) / WebInterface.playbook_isDonwloaded_max;
                 Log.d("進度",downloaded_percentage+",最大值="+WebInterface.playbook_isDonwloaded_max);
-                WebInterface.progressDialog.setMessage("已下載:"+downloaded_percentage+"%");
+//                WebInterface.progressDialog.setMessage("已下載:"+downloaded_percentage+"%");
             }
         });
     }
