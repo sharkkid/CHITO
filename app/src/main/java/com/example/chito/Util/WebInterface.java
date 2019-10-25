@@ -144,6 +144,7 @@ public class WebInterface extends Object{
                 try {
                     if (webPresenter.isFileExists("/story_assets/s"+ story_id, story_id+".json")) {
                         //移除以前下載的檔案
+                        Log.d("WebInterface","移除="+"/story_assets/s"+ story_id);
                         webPresenter.deleteFile("/story_assets/s" + story_id, story_id+".json");
                         fos = new FileOutputStream(new File(Environment.getExternalStorageDirectory().getPath()+"/story_assets/s"+story_id+"/"+story_id+".json"));
                         fos.write(str.getBytes());

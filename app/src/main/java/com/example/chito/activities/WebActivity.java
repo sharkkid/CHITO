@@ -77,10 +77,6 @@ public class WebActivity extends AppCompatActivity implements HtmlView {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        init();
-    }
-
-    public void init() {
         //主要調配器宣告
         webPresenter = new WebPresenter(this, new MainModel());
         webPresenter.onCreate();
@@ -90,22 +86,46 @@ public class WebActivity extends AppCompatActivity implements HtmlView {
         //更新進度用的Context
         act = WebActivity.this;
 
+        //權限索取
+        webPresenter.reques_permission();
+        webPresenter.checkStoredPermission(WebActivity.this);
+
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        ConnectivityManager connectivityManager =(ConnectivityManager)getSystemService(Context.CONNECTIVITY_SERVICE);
+        if(webPresenter.checkNetworkState(WebActivity.this,connectivityManager)) {
+            webPresenter.checkStoredPermission(WebActivity.this);
+            progressDialog = ProgressDialog.show(WebActivity.this ,
+                    "劇本清單下載中" , "請等待..." , true);
+//            progressDialog.setMessage("Test");
+            //判斷下載後的call back
+            booklist_isDonwloaded = true;
+            //下載劇本清單
+            new PlayBookList_Downloader().execute("http://" + GlobalValue.url + "/api/v1/playbooks/");
+            main();
+        }
+    }
+
+    public void main() {
         //確認網路權限
         ConnectivityManager connectivityManager =(ConnectivityManager)getSystemService(Context.CONNECTIVITY_SERVICE);
         if(webPresenter.checkNetworkState(WebActivity.this,connectivityManager)) {
 
-            //權限索取
-            webPresenter.reques_permission();
-            webPresenter.checkStoredPermission(WebActivity.this);
-            progressDialog = ProgressDialog.show(WebActivity.this,
-                    "劇本清單下載中", "請等待...", true);
-//            progressDialog.setMessage("Test");
-            //判斷下載後的call back
-            booklist_isDonwloaded = true;
+//            progressDialog = ProgressDialog.show(WebActivity.this,
+//                    "劇本清單下載中", "請等待...", true);
+////            progressDialog.setMessage("Test");
+//            //判斷下載後的call back
+//            booklist_isDonwloaded = true;
+//
+//            //下載劇本清單
+//            new PlayBookList_Downloader().execute("http://"+ GlobalValue.url +"/api/v1/playbooks/");
 
-            //下載劇本清單
-            new PlayBookList_Downloader().execute("http://"+ GlobalValue.url +"/api/v1/playbooks/");
 //            new PlayBookList_Downloader().execute("http://chito-test.nya.tw:3000/CHITO/playbooks_test.php");
+
             WebSettings webSettings = webView.getSettings();
 
             // 设置与Js交互的权限
@@ -239,6 +259,8 @@ public class WebActivity extends AppCompatActivity implements HtmlView {
 
     @Override
     public void reques_permission() {
+        webPresenter.checkStoredPermission(WebActivity.this);
+
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             //没有 ACCESS_FINE_LOCATION 权限
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, webPresenter.ACCESS_FINE_LOCATION_CODE);
@@ -409,6 +431,15 @@ public class WebActivity extends AppCompatActivity implements HtmlView {
     @Override
     public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
         switch (requestCode) {
+            case MainPresenter.WRITE_EXTERNAL_STORAGE:
+                if (grantResults.length > 0
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    // 申请同意
+                } else {
+                    //申请拒绝
+//                    Toast.makeText(this, "您已拒絕位置權限，將無法搜尋Beacon!", Toast.LENGTH_SHORT).show();
+                }
+                break;
             case MainPresenter.ACCESS_FINE_LOCATION_CODE:
                 if (grantResults.length > 0
                         && grantResults[0] == PackageManager.PERMISSION_GRANTED) {

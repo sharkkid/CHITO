@@ -212,7 +212,7 @@ public class PlayBookActivity extends AppCompatActivity implements HtmlView,com.
         SharedPreferences spref = (SharedPreferences) getPreferences(MODE_PRIVATE);
         int book_save = Integer.parseInt(spref.getString(book_id+"_save", "0"));
 //        showToast(book_save+"");
-        startPlayBook(this,scenes_list.get(5),scenes_list);
+        startPlayBook(this,scenes_list.get(0),scenes_list);
     }
 
     private void updateLocation(Location location) {

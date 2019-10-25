@@ -37,6 +37,7 @@ public class MainPresenter {
     public static final int  REQUEST_ENABLE_BT_CODE = 2;
     public static final int  OVERLAY_PERMISSION_REQ_CODE = 3;
     public static final int  ACCESS_COARSE_LOCATION = 4;
+    public static final int  WRITE_EXTERNAL_STORAGE = 5;
 
 
     public MainPresenter(MainView mainView, MainModel mainModel){
