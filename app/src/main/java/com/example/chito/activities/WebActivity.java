@@ -18,6 +18,7 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 
 import android.os.Environment;
+import android.os.Handler;
 import android.provider.Settings;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
@@ -65,30 +66,19 @@ public class WebActivity extends AppCompatActivity implements HtmlView {
     public static ProgressDialog progressDialog;
     public static boolean booklist_isDonwloaded = false;
 
-    private String result="";
+    public static String result="";
     private static String book_content;
 
     private static int book_total = 0;
 
-    private JSONObject json;
+    public static JSONObject json;
 
     public static WebActivity act;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        //主要調配器宣告
-        webPresenter = new WebPresenter(this, new MainModel());
-        webPresenter.onCreate();
-
-        webView = findViewById(R.id.MainWebView);
-
-        //更新進度用的Context
-        act = WebActivity.this;
-
-        //權限索取
-        webPresenter.reques_permission();
-        webPresenter.checkStoredPermission(WebActivity.this);
+        main();
 
     }
 
@@ -110,7 +100,54 @@ public class WebActivity extends AppCompatActivity implements HtmlView {
         }
     }
 
+    public static void reload_story_json(){
+        WebSettings webSettings = webView.getSettings();
+        webSettings.setJavaScriptEnabled(true);
+        webView.addJavascriptInterface(new WebInterface(act, webPresenter), "Chito");//AndroidtoJS类对象映射到js的test对象
+        try {
+            result = webPresenter.getFileText(Environment.getExternalStorageDirectory().getPath() + "/story_assets/playbook_list" , "playbook.json");
+            json = new JSONObject(result);
+            book_total = json.getJSONArray("payloads").length();
+            String readytosend = "";
+            for(int i = 0;i<json.getJSONArray("payloads").length();i++){
+                String id = json.getJSONArray("payloads").getJSONObject(i).getString("id");
+                String title = json.getJSONArray("payloads").getJSONObject(i).getString("title");
+                String description = json.getJSONArray("payloads").getJSONObject(i).getString("description");
+                if(description == null){
+                    Log.d("description","description=null");
+                }
+                String categories = json.getJSONArray("payloads").getJSONObject(i).getString("categories");
+                int IsDownloaded = 0;
+                if(webPresenter.isFileExists("/story_assets/s"+id,id+".json"))
+                    IsDownloaded = 1;
+                else
+                    IsDownloaded = 0;
+                readytosend += id+","+IsDownloaded+","+title+","+description+","+"0"+"|";
+            }
+            readytosend = readytosend.substring(0, readytosend.length()-1);
+            book_content = readytosend;
+            Log.d("list", readytosend);
+//                Log.d("list", json.getJSONArray("payloads").getJSONObject(0).getString("id"));
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+    }
+
     public void main() {
+        //主要調配器宣告
+        webPresenter = new WebPresenter(this, new MainModel());
+        webPresenter.onCreate();
+
+        webView = findViewById(R.id.MainWebView);
+
+        //更新進度用的Context
+        act = WebActivity.this;
+
+        //權限索取
+        webPresenter.reques_permission();
+        webPresenter.checkStoredPermission(WebActivity.this);
         //確認網路權限
         ConnectivityManager connectivityManager =(ConnectivityManager)getSystemService(Context.CONNECTIVITY_SERVICE);
         if(webPresenter.checkNetworkState(WebActivity.this,connectivityManager)) {
@@ -127,26 +164,8 @@ public class WebActivity extends AppCompatActivity implements HtmlView {
 //            new PlayBookList_Downloader().execute("http://chito-test.nya.tw:3000/CHITO/playbooks_test.php");
 
             WebSettings webSettings = webView.getSettings();
-
-            // 设置与Js交互的权限
             webSettings.setJavaScriptEnabled(true);
-            // 通过addJavascriptInterface()将Java对象映射到JS对象
-            //参数1：Javascript对象名
-            //参数2：Java对象名
             webView.addJavascriptInterface(new WebInterface(WebActivity.this, webPresenter), "Chito");//AndroidtoJS类对象映射到js的test对象
-            // 加载JS代码
-            // 格式规定为:file:///android_asset/文件名.html
-//        webView.loadUrl("file:///android_asset/www/browse.html");
-//            webView.setWebViewClient(new WebViewClient()
-//            {
-//                @Override
-//                public void onPageFinished(WebView view, String url)
-//                {
-//                    super.onPageFinished(view, url);
-//                    webView.loadUrl("javascript:send_playbook_list_total(\"測試測試\")");//調用Webview上的js處理劇本清單
-//                }
-//            });
-
             try {
                 result = webPresenter.getFileText(Environment.getExternalStorageDirectory().getPath() + "/story_assets/playbook_list" , "playbook.json");
                 json = new JSONObject(result);
@@ -236,7 +255,7 @@ public class WebActivity extends AppCompatActivity implements HtmlView {
             public void run() {
                 double downloaded_percentage = (WebInterface.playbook_isDonwloaded_n*100) / WebInterface.playbook_isDonwloaded_max;
                 Log.d("進度",downloaded_percentage+",最大值="+WebInterface.playbook_isDonwloaded_max);
-//                WebInterface.progressDialog.setMessage("已下載:"+downloaded_percentage+"%");
+                WebInterface.progressDialog.setMessage("已下載:"+downloaded_percentage+"%");
             }
         });
     }
@@ -265,21 +284,26 @@ public class WebActivity extends AppCompatActivity implements HtmlView {
             //没有 ACCESS_FINE_LOCATION 权限
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, webPresenter.ACCESS_FINE_LOCATION_CODE);
         }
-
-        if(!Settings.canDrawOverlays(WebActivity.this)) {
-            AlertDialog.Builder dialog = new AlertDialog.Builder(WebActivity.this);
-            dialog.setTitle("權限請求!");
-            dialog.setMessage("請允許本程式可懸浮權限!");
-            dialog.setPositiveButton("前往",new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface arg0, int arg1) {
-                    // TODO Auto-generated method stub
-                    Intent enableIntent = new Intent( ACTION_MANAGE_OVERLAY_PERMISSION );
-                    startActivityForResult( enableIntent, webPresenter.OVERLAY_PERMISSION_REQ_CODE );
+        new Handler().postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                if(!Settings.canDrawOverlays(WebActivity.this)) {
+                    AlertDialog.Builder dialog = new AlertDialog.Builder(WebActivity.this);
+                    dialog.setTitle("權限請求!");
+                    dialog.setMessage("請允許本程式可懸浮權限!");
+                    dialog.setPositiveButton("前往",new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface arg0, int arg1) {
+                            // TODO Auto-generated method stub
+                            Intent enableIntent = new Intent( ACTION_MANAGE_OVERLAY_PERMISSION );
+                            startActivityForResult( enableIntent, webPresenter.OVERLAY_PERMISSION_REQ_CODE );
+                        }
+                    });
+                    dialog.show();
                 }
-            });
-            dialog.show();
-        }
+            };
+        },1000);
+
         if(!webPresenter.checkGpsStatus(this)){
             AlertDialog.Builder dialog = new AlertDialog.Builder(this);
             dialog.setTitle("GPS定位權限請求!");
@@ -446,7 +470,7 @@ public class WebActivity extends AppCompatActivity implements HtmlView {
                     // 申请同意
                 } else {
                     //申请拒绝
-                    Toast.makeText(this, "您已拒絕位置權限，將無法搜尋Beacon!", Toast.LENGTH_SHORT).show();
+//                    Toast.makeText(this, "您已拒絕位置權限，將無法搜尋Beacon!", Toast.LENGTH_SHORT).show();
                 }
                 break;
             case MainPresenter.REQUEST_ENABLE_BT_CODE:
@@ -472,7 +496,7 @@ public class WebActivity extends AppCompatActivity implements HtmlView {
                     // 申请同意
                 } else {
                     //申请拒绝
-                    Toast.makeText(this, "您已拒絕GPS定位權限，將無法搜尋GPS!", Toast.LENGTH_SHORT).show();
+//                    Toast.makeText(this, "您已拒絕GPS定位權限，將無法搜尋GPS!", Toast.LENGTH_SHORT).show();
                 }
                 break;
         }

@@ -42,6 +42,7 @@ import static com.example.chito.Util.GlobalValue.IsBleStart;
 import static com.example.chito.Util.GlobalValue.flag_map;
 import static com.example.chito.Util.GlobalValue.flag_status;
 import static com.example.chito.activities.PlayBookActivity.qr_flag;
+import static com.example.chito.activities.WebActivity.reload_story_json;
 
 public class WebInterface extends Object{
     public static String TAG = "WebInterface";
@@ -191,6 +192,7 @@ public class WebInterface extends Object{
                         }
                     }).start();
                 }
+                reload_story_json();
             } catch (JSONException e) {
                 e.printStackTrace();
             }

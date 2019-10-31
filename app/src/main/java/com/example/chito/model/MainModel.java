@@ -546,8 +546,10 @@ public class MainModel {
             if(Isempty(jsonObject,"audio")) {
 
                 JSONArray jsonArray_audio = new JSONObject(new JSONObject(jsonObject.getString("initial")).getString("audio")).getJSONArray("tracks");
-                String method = new JSONObject(new JSONObject(jsonObject.getString("initial")).getString("audio")).getString("method");
-                map.put("audio_method", method);
+                if(new JSONObject(new JSONObject(jsonObject.getString("initial")).getString("audio")).has("method")){
+                    String method = new JSONObject(new JSONObject(jsonObject.getString("initial")).getString("audio")).getString("method");
+                    map.put("audio_method", method);
+                }
                 map.put("audio_tracks_total", jsonArray_audio.length()+"");
                 //從這開始
                 Log.d("jsonArray_audio", jsonArray_audio.length() + "");
