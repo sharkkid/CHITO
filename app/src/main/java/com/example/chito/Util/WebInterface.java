@@ -11,6 +11,7 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Environment;
 import android.os.Handler;
+import android.os.Message;
 import android.util.Log;
 import android.webkit.JavascriptInterface;
 import android.webkit.WebView;
@@ -20,6 +21,7 @@ import android.widget.Toast;
 import com.example.chito.activities.MainActivity;
 import com.example.chito.activities.PlayBookActivity;
 import com.example.chito.activities.QrScanner;
+import com.example.chito.activities.WebActivity;
 import com.example.chito.presenter.WebPresenter;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
@@ -60,6 +62,24 @@ public class WebInterface extends Object{
         this.context = context;
         this.webPresenter = webPresenter;
     }
+
+    public static Handler handler = new Handler(){
+        @Override
+        public void handleMessage(Message msg) {
+            switch(msg.what){
+                case 1:
+                    if(playbook_isDonwloaded_max != 0) {
+                        double downloaded_percentage = (playbook_isDonwloaded_n * 100) / playbook_isDonwloaded_max;
+                        progressDialog.setMessage("已下載:" + downloaded_percentage + "%");
+                        if(downloaded_percentage == 100){
+                            WebActivity.reload_story_json();
+                        }
+                    }
+                    break;
+            }
+        }
+    };
+
     @JavascriptInterface
     public void ShowToast(String str){
         Toast.makeText(context,str,Toast.LENGTH_SHORT).show();
@@ -117,9 +137,11 @@ public class WebInterface extends Object{
     }
 
     public class PlayBook_Downloader extends AsyncTask<String, Void, String> {
+        String book_id = "0";
         @Override
         protected String doInBackground(String... urls) {
             playbook_isDonwloaded = true;
+            book_id = urls[1];
             File direct = new File(Environment.getExternalStorageDirectory()
                     + "/story_assets");
             if (!direct.exists()) {
@@ -143,15 +165,15 @@ public class WebInterface extends Object{
                 String str = webPresenter.toPrettyFormat(result);
                 FileOutputStream fos = null;
                 try {
-                    if (webPresenter.isFileExists("/story_assets/s"+ story_id, story_id+".json")) {
+                    if (webPresenter.isFileExists("/story_assets/s"+ book_id, book_id+".json")) {
                         //移除以前下載的檔案
-                        Log.d("WebInterface","移除="+"/story_assets/s"+ story_id);
-                        webPresenter.deleteFile("/story_assets/s" + story_id, story_id+".json");
-                        fos = new FileOutputStream(new File(Environment.getExternalStorageDirectory().getPath()+"/story_assets/s"+story_id+"/"+story_id+".json"));
+                        Log.d("WebInterface","移除="+"/story_assets/s"+ book_id);
+                        webPresenter.deleteFile("/story_assets/s" + book_id, book_id+".json");
+                        fos = new FileOutputStream(new File(Environment.getExternalStorageDirectory().getPath()+"/story_assets/s"+book_id+"/"+book_id+".json"));
                         fos.write(str.getBytes());
                     }
                     else{
-                        fos = new FileOutputStream(new File(Environment.getExternalStorageDirectory().getPath()+"/story_assets/s"+story_id+"/"+story_id+".json"));
+                        fos = new FileOutputStream(new File(Environment.getExternalStorageDirectory().getPath()+"/story_assets/s"+book_id+"/"+book_id+".json"));
                         fos.write(str.getBytes());
                     }
                 }
@@ -180,10 +202,10 @@ public class WebInterface extends Object{
                                     if (webPresenter.isFileExists("/story_assets/s" + story_id, fileNameConverter(articles.getJSONObject(finalI).getString("contentType"), assets_id))) {
                                         //移除以前下載的檔案
                                         webPresenter.deleteFile("/story_assets/s" + story_id, fileNameConverter(articles.getJSONObject(finalI).getString("contentType"), assets_id));
-                                        file_downloader(story_id,assets_id,articles,finalI);
+                                        file_downloader(book_id,assets_id,articles,finalI);
                                     }
                                     else{
-                                        file_downloader(story_id,assets_id,articles,finalI);
+                                        file_downloader(book_id,assets_id,articles,finalI);
                                     }
                                 } catch (JSONException e) {
                                     e.printStackTrace();

@@ -19,6 +19,7 @@ import android.os.Bundle;
 
 import android.os.Environment;
 import android.os.Handler;
+import android.os.Message;
 import android.provider.Settings;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
@@ -250,14 +251,9 @@ public class WebActivity extends AppCompatActivity implements HtmlView {
     }
 
     public static void updateUI_download(){
-        act.runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                double downloaded_percentage = (WebInterface.playbook_isDonwloaded_n*100) / WebInterface.playbook_isDonwloaded_max;
-                Log.d("進度",downloaded_percentage+",最大值="+WebInterface.playbook_isDonwloaded_max);
-                WebInterface.progressDialog.setMessage("已下載:"+downloaded_percentage+"%");
-            }
-        });
+        Message msg = new Message();
+        msg.what = 1;
+        WebInterface.handler.sendMessage(msg);
     }
 
     @Override
