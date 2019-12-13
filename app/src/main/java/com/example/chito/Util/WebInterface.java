@@ -70,7 +70,7 @@ public class WebInterface extends Object{
                 case 1:
                     if(playbook_isDonwloaded_max != 0) {
                         double downloaded_percentage = (playbook_isDonwloaded_n * 100) / playbook_isDonwloaded_max;
-                        progressDialog.setMessage("已下載:" + downloaded_percentage + "%");
+//                        progressDialog.setMessage("已下載:" + downloaded_percentage + "%");
                         if(downloaded_percentage == 100){
                             WebActivity.reload_story_json();
                         }

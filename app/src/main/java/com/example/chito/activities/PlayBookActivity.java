@@ -446,6 +446,8 @@ public class PlayBookActivity extends AppCompatActivity implements HtmlView,com.
             for (int i = 0; i < trigger_total; i++) {
                 String[] audio_finish_flag = {"flag","ring_asset_id","call_assetid","name","0","0","0","0"};//flag , ring_asset_id, call_assetid, caller_name, next_sceneId, caller_number, fakecallDecline_sceneId;
                 String audio_assetId = story_map.get("audio_assetId" + i);
+                int audio_fadeInSeconds = Integer.parseInt(story_map.get("audio_fadeInSeconds" + i));
+                int audio_fadeOutSeconds = Integer.parseInt(story_map.get("audio_fadeOutSeconds" + i));
                 Log.d("audio_finish_flag","id="+audio_assetId);
                 if(webPresenter.IsMapNull(story_map, "trigger_type"+i).equals("audioFinish")){
                     audio_finish_flag[0] = "2";
@@ -466,7 +468,9 @@ public class PlayBookActivity extends AppCompatActivity implements HtmlView,com.
 
 
                 if (!audio_method.equals("") && !webPresenter.IsMapNull(story_map, "trigger_type"+i).equals("timer")) {
-                    mp = webPresenter.playSound(context , "1" , audio_assetId , false , audioManager , 5 , 0 , audio_finish_flag);
+                    mp = webPresenter.playSound(context , book_id , audio_assetId , false , audioManager , audio_fadeInSeconds , audio_fadeOutSeconds , audio_finish_flag);
+                }else if(!webPresenter.IsMapNull(story_map, "display_assetsId").equals("")){
+                    mp = webPresenter.playSound(context , book_id , audio_assetId , false , audioManager , audio_fadeInSeconds , audio_fadeOutSeconds , audio_finish_flag);
                 }
                 Log.d("story_map.get(trigger_type"+i+")",story_map.get("trigger_type" + i));
                 switch (story_map.get("trigger_type" + i)) {

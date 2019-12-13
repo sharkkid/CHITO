@@ -264,7 +264,7 @@ public class MainModel {
             fadeIn.postDelayed(new Runnable() {
                 @Override
                 public void run() {
-                    float speed = 0.05f;
+                    float speed = 0.0005f;
                     volume[0] = FadeIn(finalMp2, fadeIn_sec, (float) volume[0], speed);
                     Log.d("FadeInvolume", volume[0] + "");
                     Log.d("timer", PlayBookActivity.audio_timer + "");
@@ -585,18 +585,20 @@ public class MainModel {
                             fadeInSeconds = new JSONObject(new JSONObject(jsonObject.getString("initial")).getString("audio")).getJSONArray("tracks").getJSONObject(i).getString("fadeInSeconds");
                         }
                         if (new JSONObject(new JSONObject(jsonObject.getString("initial")).getString("audio")).getJSONArray("tracks").getJSONObject(i).has("volume")) {
-                            volume_type = new JSONObject(new JSONObject(new JSONObject(jsonObject.getString("initial")).getString("audio")).getJSONArray("tracks").getJSONObject(i).getString("volume")).getString("type");
-                            latitude =  new JSONObject(new JSONObject(new JSONObject(jsonObject.getString("initial")).getString("audio")).getJSONArray("tracks").getJSONObject(i).getString("volume")).getString("latitude");
-                            longtitude =  new JSONObject(new JSONObject(new JSONObject(jsonObject.getString("initial")).getString("audio")).getJSONArray("tracks").getJSONObject(i).getString("volume")).getString("longtitude");
-                            JSONArray jsonArray_distanceVolumes = new JSONObject(new JSONObject(new JSONObject(jsonObject.getString("initial")).getString("audio")).getJSONArray("tracks").getJSONObject(i).getString("volume")).getJSONArray("distanceVolumes");
-
-                            int distance_length = new JSONObject(new JSONObject(new JSONObject(jsonObject.getString("initial")).getString("audio")).getJSONArray("tracks").getJSONObject(i).getString("volume")).getJSONArray("distanceVolumes").length();
-                            for(int x=0;x<distance_length;x++){
-                                String unparesed_value = new JSONObject(new JSONObject(new JSONObject(jsonObject.getString("initial")).getString("audio")).getJSONArray("tracks").getJSONObject(i).getString("volume")).getJSONArray("distanceVolumes").get(i)+"";
-                                String[] distance_value = unparesed_value.substring(1,unparesed_value.length()-1).split(",");
-                                map.put("distanceVolumes_distance"+x+i, distance_value[0]);
-                                map.put("distanceVolumes_volume"+x+i, distance_value[1]);
-                            }
+//                            if (new JSONObject(new JSONObject(new JSONObject(jsonObject.getString("initial")).getString("audio")).getJSONArray("tracks").getJSONObject(i).getString("volume")).has("type")) {
+//                                volume_type = new JSONObject(new JSONObject(new JSONObject(jsonObject.getString("initial")).getString("audio")).getJSONArray("tracks").getJSONObject(i).getString("volume")).getString("type");
+//                            }
+//                            latitude =  new JSONObject(new JSONObject(new JSONObject(jsonObject.getString("initial")).getString("audio")).getJSONArray("tracks").getJSONObject(i).getString("volume")).getString("latitude");
+//                            longtitude =  new JSONObject(new JSONObject(new JSONObject(jsonObject.getString("initial")).getString("audio")).getJSONArray("tracks").getJSONObject(i).getString("volume")).getString("longtitude");
+//                            JSONArray jsonArray_distanceVolumes = new JSONObject(new JSONObject(new JSONObject(jsonObject.getString("initial")).getString("audio")).getJSONArray("tracks").getJSONObject(i).getString("volume")).getJSONArray("distanceVolumes");
+//
+//                            int distance_length = new JSONObject(new JSONObject(new JSONObject(jsonObject.getString("initial")).getString("audio")).getJSONArray("tracks").getJSONObject(i).getString("volume")).getJSONArray("distanceVolumes").length();
+//                            for(int x=0;x<distance_length;x++){
+//                                String unparesed_value = new JSONObject(new JSONObject(new JSONObject(jsonObject.getString("initial")).getString("audio")).getJSONArray("tracks").getJSONObject(i).getString("volume")).getJSONArray("distanceVolumes").get(i)+"";
+//                                String[] distance_value = unparesed_value.substring(1,unparesed_value.length()-1).split(",");
+//                                map.put("distanceVolumes_distance"+x+i, distance_value[0]);
+//                                map.put("distanceVolumes_volume"+x+i, distance_value[1]);
+//                            }
                         }
                         map.put("audio_instanceId"+i, instanceId);
                         map.put("pause"+i, pause);
