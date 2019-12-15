@@ -171,7 +171,7 @@ public class PlayBookActivity extends AppCompatActivity implements HtmlView,com.
                 scenes_list.add(mapping_story);
                 Log.d("mapping_story " + i , String.valueOf(mapping_story));
             }
-//            Log.d("mapping_story", String.valueOf(scenes_list));
+            Log.d("mapping_story", String.valueOf(scenes_list));
         } catch (IOException | JSONException e) {
             e.printStackTrace();
         } catch (IllegalStateException | JsonSyntaxException exception) {
@@ -286,6 +286,9 @@ public class PlayBookActivity extends AppCompatActivity implements HtmlView,com.
                             break;
                         }
                         break;
+                    case "fakecall-go":
+                        event = "    Chito.fakecall(\"" + book_id + "\",\"" + next_sceneId + "\");";
+                        break;
                 }
 
                 Log.d("event",event);
@@ -378,8 +381,10 @@ public class PlayBookActivity extends AppCompatActivity implements HtmlView,com.
                                 case "webviewClick":
                                     if(!webPresenter.IsMapNull(story_map , "trigger_id"+i).equals(""))
                                         WebViewClick_btn = webPresenter.IsMapNull(story_map , "trigger_id"+i);
+
                                     next_sceneId = (!webPresenter.IsMapNull(story_map , "trigger_action_sceneId" + i).equals("")) ? Integer.parseInt(webPresenter.IsMapNull(story_map , "trigger_action_sceneId" + i)) : Integer.parseInt(String.valueOf(current_sceneId));
                                     loadHtmlUrl(book_id, current_html, next_sceneId + "", "0");
+
                                     break;
                                 case "timer":
                                     audio_timer = 0;
@@ -444,35 +449,37 @@ public class PlayBookActivity extends AppCompatActivity implements HtmlView,com.
             //triggers
 //            if (!audio_method.equals("")) {
             for (int i = 0; i < trigger_total; i++) {
-                String[] audio_finish_flag = {"flag","ring_asset_id","call_assetid","name","0","0","0","0"};//flag , ring_asset_id, call_assetid, caller_name, next_sceneId, caller_number, fakecallDecline_sceneId;
-                String audio_assetId = story_map.get("audio_assetId" + i);
-                int audio_fadeInSeconds = Integer.parseInt(story_map.get("audio_fadeInSeconds" + i));
-                int audio_fadeOutSeconds = Integer.parseInt(story_map.get("audio_fadeOutSeconds" + i));
-                Log.d("audio_finish_flag","id="+audio_assetId);
-                if(webPresenter.IsMapNull(story_map, "trigger_type"+i).equals("audioFinish")){
-                    audio_finish_flag[0] = "2";
-                    audio_finish_flag[4] = webPresenter.IsMapNull(story_map, "trigger_action_sceneId"+i);
-                    if(!webPresenter.IsMapNull(story_map, "trigger_action_fakecallFinish").equals("")) {
-                        audio_finish_flag[0] = "1";
-                        audio_finish_flag[1] = webPresenter.IsMapNull(story_map, "trigger_action_ring_assetId"+i);
-                        audio_finish_flag[2] = webPresenter.IsMapNull(story_map, "trigger_action_call_assetId"+i);
-                        audio_finish_flag[3] = webPresenter.IsMapNull(story_map, "trigger_action_callerName");
-                        audio_finish_flag[4] = webPresenter.IsMapNull(story_map, "trigger_action_sceneId"+i);
-                        audio_finish_flag[5] = webPresenter.IsMapNull(story_map, "trigger_action_fakecallDeclined");
-                        audio_finish_flag[6] = webPresenter.IsMapNull(story_map, "trigger_action_callerNumber");
-                        audio_finish_flag[7] = webPresenter.IsMapNull(story_map , "trigger_action_fakecallFinish");
+                    String[] audio_finish_flag = {"flag" , "ring_asset_id" , "call_assetid" , "name" , "0" , "0" , "0" , "0"};//flag , ring_asset_id, call_assetid, caller_name, next_sceneId, caller_number, fakecallDecline_sceneId;
+                    String audio_assetId = story_map.get("audio_assetId" + i);
+                    int audio_fadeInSeconds = Integer.parseInt(story_map.get("audio_fadeInSeconds" + i));
+                    int audio_fadeOutSeconds = Integer.parseInt(story_map.get("audio_fadeOutSeconds" + i));
+                    Log.d("audio_finish_flag" , "id=" + audio_assetId);
+                    if (webPresenter.IsMapNull(story_map , "trigger_type" + i).equals("audioFinish")) {
+                        audio_finish_flag[0] = "2";
+                        audio_finish_flag[4] = webPresenter.IsMapNull(story_map , "trigger_action_sceneId" + i);
+                        if (!webPresenter.IsMapNull(story_map , "trigger_action_fakecallFinish"+i).equals("")) {
+                            audio_finish_flag[0] = "1";
+                            audio_finish_flag[1] = webPresenter.IsMapNull(story_map , "trigger_action_ring_assetId" + i);
+                            audio_finish_flag[2] = webPresenter.IsMapNull(story_map , "trigger_action_call_assetId" + i);
+                            audio_finish_flag[3] = webPresenter.IsMapNull(story_map , "trigger_action_callerName"+ i);
+                            audio_finish_flag[4] = webPresenter.IsMapNull(story_map , "trigger_action_sceneId" + i);
+                            audio_finish_flag[5] = webPresenter.IsMapNull(story_map , "trigger_action_fakecallDeclined"+ i);
+                            audio_finish_flag[6] = webPresenter.IsMapNull(story_map , "trigger_action_callerNumber"+ i);
+                            audio_finish_flag[7] = webPresenter.IsMapNull(story_map , "trigger_action_fakecallFinish");
+                        }
+                        if (!webPresenter.IsMapNull(story_map , "trigger_audioId" + i).equals(""))
+                            audio_assetId = webPresenter.IsMapNull(story_map , "trigger_audioId" + i);
                     }
-                    if(!webPresenter.IsMapNull(story_map, "trigger_audioId"+i).equals(""))
-                        audio_assetId = webPresenter.IsMapNull(story_map, "trigger_audioId"+i);
-                }
+                    Log.d("audio_finish_flag", String.valueOf(audio_finish_flag));
 
+                    if (!audio_method.equals("") && !webPresenter.IsMapNull(story_map , "trigger_type" + i).equals("timer")) {
+                        mp = webPresenter.playSound(context , book_id , audio_assetId , false , audioManager , audio_fadeInSeconds , audio_fadeOutSeconds , audio_finish_flag);
+                    } else if (!webPresenter.IsMapNull(story_map , "display_assetsId").equals("")) {
+                        mp = webPresenter.playSound(context , book_id , audio_assetId , false , audioManager , audio_fadeInSeconds , audio_fadeOutSeconds , audio_finish_flag);
+                    }
 
-                if (!audio_method.equals("") && !webPresenter.IsMapNull(story_map, "trigger_type"+i).equals("timer")) {
-                    mp = webPresenter.playSound(context , book_id , audio_assetId , false , audioManager , audio_fadeInSeconds , audio_fadeOutSeconds , audio_finish_flag);
-                }else if(!webPresenter.IsMapNull(story_map, "display_assetsId").equals("")){
-                    mp = webPresenter.playSound(context , book_id , audio_assetId , false , audioManager , audio_fadeInSeconds , audio_fadeOutSeconds , audio_finish_flag);
-                }
                 Log.d("story_map.get(trigger_type"+i+")",story_map.get("trigger_type" + i));
+
                 switch (story_map.get("trigger_type" + i)) {
                     case "gps":
                         if(webPresenter.IsMapNull(story_map , "trigger_flag_names"+i).equals("") && webPresenter.IsMapNull(story_map , "trigger_unflag_names"+i).equals("")) {

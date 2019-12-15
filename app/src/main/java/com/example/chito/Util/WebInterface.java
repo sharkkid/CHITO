@@ -136,6 +136,11 @@ public class WebInterface extends Object{
         });
     }
 
+    @JavascriptInterface
+    public static void loadFakeCall(String ring_id, String call_id, String name, String next_sceneId, String message, String caller_number){
+       playBookActivity.FakeCall(context,ring_id,call_id,name,next_sceneId,message,caller_number);
+    }
+
     public class PlayBook_Downloader extends AsyncTask<String, Void, String> {
         String book_id = "0";
         @Override
